@@ -27,7 +27,7 @@ public class HomeActivity extends AppCompatActivity {
             String json = bundle.getString("access_token");
             System.out.println(json);
         }
-    }
+    }//TEST
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -49,10 +49,6 @@ public class HomeActivity extends AppCompatActivity {
 
         return true;
     }
-
-
-
-
 
 
 
