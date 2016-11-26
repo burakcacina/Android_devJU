@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Uptade Account"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        />
+
+    <EditText
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Latitude"
+        android:id="@+id/up_latitude"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:digits="0123456789."
+        android:inputType="numberDecimal"/>
+    <EditText
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:hint="Longitude"
+        android:id="@+id/up_longitude"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:digits="0123456789."
+        android:inputType="numberDecimal"/>
+
+    <Button
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:text="Update"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="30dp"
+        android:id="@+id/uptadeAcc"
+        />
+
+
+</LinearLayout>
