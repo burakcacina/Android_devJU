@@ -23,7 +23,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class SignupActivity extends AppCompatActivity {
+public class SignupActivity extends BaseActivity {
 
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
     EditText ET_LATITUTE,ET_LONGITUTE,ET_USER_NAME,ET_USER_PASS;
@@ -35,7 +35,7 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-
+super.showAdvertisement();
         Button but1 = (Button) findViewById(R.id.userReg);
         ET_USER_NAME= (EditText)findViewById(R.id.new_user_name);
         ET_USER_PASS = (EditText)findViewById(R.id.new_user_pass);

@@ -11,12 +11,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        super.showAdvertisement();
         Bundle bundle = getIntent().getExtras();
 
         SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);

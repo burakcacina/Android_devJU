@@ -11,7 +11,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     LoginDataBaseAdapter loginDataBaseAdapter;
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
@@ -35,6 +37,12 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        super.showAdvertisement();
+        //google admob
+        MobileAds.initialize(getApplicationContext(), "ca-app-pub-6611688605030855/6976556923");
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
 
         ET_REG_USER_NAME = (EditText) findViewById(R.id.reg_user_name);
         ET_REG_USER_PASS = (EditText) findViewById(R.id.reg_user_pass);
