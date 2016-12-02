@@ -22,15 +22,22 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".UpdateAccActivity"
-            android:label="Update Account"/>
-        <activity android:name=".HomeActivity"
-            android:label="Recipes"/>
-        <activity android:name=".LoginActivity"
-            android:label="Login"/>
-        <activity android:name=".SignupActivity"
-            android:label="Create Account"/>
-
+        <activity
+            android:name=".UpdateAccActivity"
+            android:label="Update Account" />
+        <activity
+            android:name=".HomeActivity"
+            android:label="Recipes" />
+        <activity
+            android:name=".LoginActivity"
+            android:label="Login" />
+        <activity
+            android:name=".SignupActivity"
+            android:label="Create Account" />
+        <activity
+            android:name=".DetailActivity"
+            android:label="Showing Recipe" />
+        
     </application>
 
 </manifest>
