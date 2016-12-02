@@ -1,3 +1,4 @@
+/*
 package net.mijlk.service;
 
 import com.google.gson.Gson;
@@ -9,9 +10,9 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-/**
+*
  * Created by Farah on 25-11-2016.
- */
+
 
 public class RecipeRestService {
 
@@ -41,3 +42,4 @@ public class RecipeRestService {
 
 
 }
+*/

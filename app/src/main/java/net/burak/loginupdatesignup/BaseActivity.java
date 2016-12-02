@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+/*package net.burak.loginupdatesignup;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,3 +39,4 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 }
+*/

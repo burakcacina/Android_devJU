@@ -11,9 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,26 +24,23 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class LoginActivity extends BaseActivity {
+public class LoginActivity extends AppCompatActivity {
 
     LoginDataBaseAdapter loginDataBaseAdapter;
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
-    EditText ET_REG_USER_NAME, ET_REG_USER_PASS;
-    String reg_user_name, reg_user_pass;
+    EditText ET_REG_USER_NAME, ET_REG_USER_PASS,ET_REG_USER_PASS2;
+    String reg_user_name, reg_user_pass,reg_user_pass_confirmation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        super.showAdvertisement();
-        //google admob
-        MobileAds.initialize(getApplicationContext(), "ca-app-pub-6611688605030855/6976556923");
-        AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
 
         ET_REG_USER_NAME = (EditText) findViewById(R.id.reg_user_name);
         ET_REG_USER_PASS = (EditText) findViewById(R.id.reg_user_pass);
+        ET_REG_USER_PASS2 = (EditText) findViewById(R.id.reg_user_pass_confirmation);
+
+
         Button but2 = (Button) findViewById(R.id.userLog);
 
         loginDataBaseAdapter=new LoginDataBaseAdapter(this);
@@ -164,7 +159,7 @@ public class LoginActivity extends BaseActivity {
 
             String storedPassword=loginDataBaseAdapter.getSinlgeEntry(reg_user_name);
             SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
-            SharedPreferences.Editor editor2 = prefs.edit();
+            SharedPreferences.Editor editor2 = prefs2.edit();
             editor2.putString("USERID", storedPassword);
             editor2.commit();
         }

@@ -84,8 +84,10 @@ public class UpdateAccActivity extends AppCompatActivity {
                 if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
                     Intent intent = new Intent(UpdateAccActivity.this, HomeActivity.class);
                     startActivity(intent);
+                    response = "UPDATED";
                     return response;
                 }
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -100,8 +102,13 @@ public class UpdateAccActivity extends AppCompatActivity {
             return null;
         }
         protected void onPostExecute(String result) {
-            super.onPostExecute(response);
-            Toast.makeText(getApplicationContext(), "Updated Successfully", Toast.LENGTH_LONG).show();
+            super.onPostExecute(result);
+            if(response != null)
+            {
+                Intent intent = new Intent(UpdateAccActivity.this, HomeActivity.class);
+                Toast.makeText(getApplicationContext(), "Updated Succesfully", Toast.LENGTH_LONG).show();
+                startActivity(intent);
+            }
         }
     }
 }

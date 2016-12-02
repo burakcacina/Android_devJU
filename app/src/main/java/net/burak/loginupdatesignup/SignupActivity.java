@@ -1,6 +1,5 @@
 package net.burak.loginupdatesignup;
 
-
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -23,11 +22,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class SignupActivity extends BaseActivity {
+public class SignupActivity extends AppCompatActivity {
 
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
-    EditText ET_LATITUTE,ET_LONGITUTE,ET_USER_NAME,ET_USER_PASS;
-    String user_name,user_pass,latitute,longitute;
+    EditText ET_LATITUTE,ET_LONGITUTE,ET_USER_NAME,ET_USER_PASS,ET_REG_USER_PASS2;
+    String user_name,user_pass,latitute,longitute,strPass2,reg_user_pass_confirmation;
     LoginDataBaseAdapter loginDataBaseAdapter;
 
 
@@ -35,12 +34,14 @@ public class SignupActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-super.showAdvertisement();
+
         Button but1 = (Button) findViewById(R.id.userReg);
         ET_USER_NAME= (EditText)findViewById(R.id.new_user_name);
         ET_USER_PASS = (EditText)findViewById(R.id.new_user_pass);
         ET_LATITUTE = (EditText)findViewById(R.id.Latitute);
         ET_LONGITUTE = (EditText)findViewById(R.id.Longitute);
+        ET_REG_USER_PASS2 = (EditText) findViewById(R.id.reg_user_pass_confirmation);
+
 
         // To start fetching the data when app start, uncomment below line to start the async task.
         loginDataBaseAdapter=new LoginDataBaseAdapter(this);
@@ -87,8 +88,16 @@ super.showAdvertisement();
                 latitute  =ET_LATITUTE.getText().toString();
                 longitute =ET_LONGITUTE.getText().toString();
 
+                reg_user_pass_confirmation = ET_REG_USER_PASS2.getText().toString();
+
+                if (user_pass.equals(reg_user_pass_confirmation)) {
+                    System.out.println("error");
+                    jsonParam.put("password", user_pass);
+                }
+
+
+
                 jsonParam.put("userName",user_name);
-                jsonParam.put("password", user_pass);
                 jsonParam.put("latitude", latitute);
                 jsonParam.put("longitude", longitute);
 
@@ -107,7 +116,7 @@ super.showAdvertisement();
                         sb.append(line + "\n");
                     }
                     br.close();
-
+                    System.out.println(sb.toString());
                     JSONObject myJson = new JSONObject(sb.toString());
                     r.response_id = myJson.optString("id");
                     r.response_error=null;
@@ -158,8 +167,12 @@ super.showAdvertisement();
             else if(r.response_id != null && r.response_error == null) {
                 Toast.makeText(getApplicationContext(), "Account Created", Toast.LENGTH_LONG).show();
                 Toast.makeText(getApplicationContext(), "Redirecting Login Screen", Toast.LENGTH_LONG).show();
+                System.out.println(r.response_id);
             }
             loginDataBaseAdapter.insertEntry(user_name, r.response_id);
+
         }
+
     }
+
 }
