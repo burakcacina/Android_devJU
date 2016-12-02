@@ -38,8 +38,17 @@
             android:name=".DetailActivity"
             android:label="Showing Recipe" />
         <activity
+            android:name=".DeleteRecipeActivity"
+            android:label="Delete Recipe" />
+        <activity
             android:name=".CreateRecipeActivity"
             android:label="CreateRecipe" />
+        <activity
+            android:name=".EditRecipeActivity"
+            android:label="Edit Recipe" />
+        <activity
+            android:name=".UpdateRecipeActivity"
+            android:label="Update Recipe" />
     </application>
 
 </manifest>

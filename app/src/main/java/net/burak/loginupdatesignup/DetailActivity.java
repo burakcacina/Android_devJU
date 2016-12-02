@@ -1,18 +1,23 @@
 package net.burak.loginupdatesignup;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -129,7 +134,7 @@ public class DetailActivity extends AppCompatActivity {
             super.onPostExecute(result);
             RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail, result);
             lvRecipes.setAdapter(adapter);
-           /* Button but1 = (Button) findViewById(R.id.deletebutton);
+            Button but1 = (Button) findViewById(R.id.deletebutton);
             Button but2 = (Button) findViewById(R.id.updatebutton);
             Button but3 = (Button) findViewById(R.id.editbutton);
 
@@ -145,7 +150,7 @@ public class DetailActivity extends AppCompatActivity {
             editor3.commit();
 
             String sa = recipeModel.getUserid();
-            if(userID.equals(sa)) {
+            if (userID.equals(sa)) {
                 but1.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         {
@@ -170,94 +175,92 @@ public class DetailActivity extends AppCompatActivity {
                         }
                     }
                 });
-            }
-            else {
+            } else {
                 Toast.makeText(getApplicationContext(), "Can't have access", Toast.LENGTH_LONG).show();
             }
-        } */
+        }
+    }
+
+    public class RecipeAdapter extends ArrayAdapter {
+
+        private List<RecipeModel> recipeModelList;
+        private int resource;
+        private LayoutInflater inflater;
+
+        public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
+            super(context, resource, objects);
+            recipeModelList = objects;
+            this.resource = resource;
+            inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         }
 
-        public class RecipeAdapter extends ArrayAdapter {
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
 
-            private List<RecipeModel> recipeModelList;
-            private int resource;
-            private LayoutInflater inflater;
+            ViewHolder holder = null;
 
-            public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
-                super(context, resource, objects);
-                recipeModelList = objects;
-                this.resource = resource;
-                inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            if (convertView == null) {
+                holder = new ViewHolder();
+                convertView = inflater.inflate(resource, null);
+                holder.ivRecipeIcon = (ImageView) convertView.findViewById(R.id.ivIcon);
+                holder.tvRecipeName = (TextView) convertView.findViewById(R.id.tvRecipeName);
+                holder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+                holder.tvDirections = (TextView) convertView.findViewById(R.id.tvDirections);
+                holder.tvUsername = (TextView) convertView.findViewById(R.id.tvUsername);
+
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+
             }
+            final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.progressBar);
 
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-
-                ViewHolder holder = null;
-
-                if (convertView == null) {
-                    holder = new ViewHolder();
-                    convertView = inflater.inflate(resource, null);
-                    holder.ivRecipeIcon = (ImageView) convertView.findViewById(R.id.ivIcon);
-                    holder.tvRecipeName = (TextView) convertView.findViewById(R.id.tvRecipeName);
-                    holder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
-                    holder.tvDirections = (TextView) convertView.findViewById(R.id.tvDirections);
-                    holder.tvUsername = (TextView) convertView.findViewById(R.id.tvUsername);
-
-                    convertView.setTag(holder);
-                } else {
-                    holder = (ViewHolder) convertView.getTag();
-
-                }
-                final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.progressBar);
-
-                // Then later, when you want to display image
-                ImageLoader.getInstance().displayImage(recipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
-                    @Override
-                    public void onLoadingStarted(String imageUri, View view) {
-                        progressBar.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onLoadingCancelled(String imageUri, View view) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-
-                // Then later, when you want to display image
-
-                holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-                holder.tvDescription.setText(recipeModelList.get(position).getDescription());
-                holder.tvUsername.setText(recipeModelList.get(position).getUserName());
-
-                StringBuffer stringBuffer = new StringBuffer();
-                for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
-                    stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
+            // Then later, when you want to display image
+            ImageLoader.getInstance().displayImage(recipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
+                @Override
+                public void onLoadingStarted(String imageUri, View view) {
+                    progressBar.setVisibility(View.VISIBLE);
                 }
 
-                holder.tvDirections.setText("Directions" + "\n" + stringBuffer);
+                @Override
+                public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                    progressBar.setVisibility(View.GONE);
+                }
 
-                return convertView;
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    progressBar.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onLoadingCancelled(String imageUri, View view) {
+                    progressBar.setVisibility(View.GONE);
+                }
+            });
+
+            // Then later, when you want to display image
+
+            holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
+            holder.tvDescription.setText(recipeModelList.get(position).getDescription());
+            holder.tvUsername.setText(recipeModelList.get(position).getUserName());
+
+            StringBuffer stringBuffer = new StringBuffer();
+            for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
+                stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
             }
 
+            holder.tvDirections.setText("Directions" + "\n" + stringBuffer);
 
-            class ViewHolder {
-                private ImageView ivRecipeIcon;
-                private TextView tvRecipeName;
-                private TextView tvDescription;
-                private TextView tvDirections;
-                private TextView tvUsername;
-            }
+            return convertView;
+        }
+
+
+        class ViewHolder {
+            private ImageView ivRecipeIcon;
+            private TextView tvRecipeName;
+            private TextView tvDescription;
+            private TextView tvDirections;
+            private TextView tvUsername;
         }
     }
 }
