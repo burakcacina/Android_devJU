@@ -37,7 +37,9 @@
         <activity
             android:name=".DetailActivity"
             android:label="Showing Recipe" />
-        
+        <activity
+            android:name=".CreateRecipeActivity"
+            android:label="CreateRecipe" />
     </application>
 
 </manifest>
