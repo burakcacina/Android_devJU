@@ -132,12 +132,12 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=9";
+                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=10";
                     new JSONTask().execute(URL_TO_HIT);
                 }
             }
         });
-      /*  but6.setOnClickListener(new View.OnClickListener() {
+        but6.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 {
@@ -145,7 +145,7 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             }
-        });*/
+        });
     }
 
     public class JSONTask extends AsyncTask<String,String, List<RecipeModel> > {
