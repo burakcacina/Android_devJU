@@ -132,7 +132,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=10";
+                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=9";
                     new JSONTask().execute(URL_TO_HIT);
                 }
             }
@@ -305,14 +305,14 @@ public class HomeActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         if (item.getItemId() == R.id.action_update) {
             Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
             startActivity(intentUpdate);
         }
-        else if(item.getItemId() == R.id.action_exit) {
-            this.finishAffinity();
+        else if (item.getItemId() == R.id.action_exit) {
+                this.finishAffinity();
         }
-
         return true;
     }
 

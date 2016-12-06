@@ -2,23 +2,18 @@ package net.burak.loginupdatesignup;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -41,7 +36,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DetailActivity extends ActionBarActivity {
+public class MainDetailActivity extends ActionBarActivity {
 
     int sa;
     private ListView lvRecipes;
@@ -51,7 +46,7 @@ public class DetailActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail_2);
+        setContentView(R.layout.activity_detail_main);
 
 
         dialog = new ProgressDialog(this);
@@ -155,78 +150,8 @@ public class DetailActivity extends ActionBarActivity {
         protected void onPostExecute(final List<RecipeModel> result) {
             super.onPostExecute(result);
             dialog.dismiss();
-
             RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail, result);
             lvRecipes.setAdapter(adapter);
-            Button but1 = (Button) findViewById(R.id.deletebutton);
-            Button but2 = (Button) findViewById(R.id.updatebutton);
-            Button but3 = (Button) findViewById(R.id.editbutton);
-
-            SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
-            final String userID = prefs2.getString("USERID", "no id"); //no id: default value
-
-            RecipeModel recipeModel = result.get(0);
-            int recipeid = recipeModel.getid();
-
-            SharedPreferences prefs3 = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
-            SharedPreferences.Editor editor3 = prefs3.edit();
-            editor3.putInt("RECIPEID", recipeid);
-            editor3.commit();
-
-            String sa = recipeModel.getUserid();
-
-            if(userID.equals(sa)) {
-                but1.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Intent intent = new Intent(DetailActivity.this, DeleteRecipeActivity.class);
-                            startActivity(intent);
-                        }
-                    }
-                });
-                but2.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Intent intent = new Intent(DetailActivity.this, UpdateRecipeActivity.class);
-                            startActivity(intent);
-                        }
-                    }
-                });
-                but3.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Intent intent = new Intent(DetailActivity.this, EditRecipeActivity.class);
-                            startActivity(intent);
-                        }
-                    }
-                });
-            }
-            else {
-                but1.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Toast.makeText(getApplicationContext(), "Can't have access to delete", Toast.LENGTH_LONG).show();
-
-                        }
-                    }
-                });
-                but2.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Toast.makeText(getApplicationContext(), "Can't have access to update", Toast.LENGTH_LONG).show();
-
-                        }
-                    }
-                });
-                but3.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        {
-                            Toast.makeText(getApplicationContext(), "Can't have access to edit", Toast.LENGTH_LONG).show();
-
-                        }
-                    }
-                });
-            }
         }
     }
 

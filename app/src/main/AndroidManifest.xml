@@ -49,6 +49,10 @@
         <activity
             android:name=".UpdateRecipeActivity"
             android:label="Update Recipe" />
+
+        <activity
+            android:name=".MainDetailActivity"
+            android:label="Showing In Detail" />
     </application>
 
 </manifest>
