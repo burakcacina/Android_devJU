@@ -49,10 +49,21 @@
         <activity
             android:name=".UpdateRecipeActivity"
             android:label="Update Recipe" />
-
         <activity
             android:name=".MainDetailActivity"
             android:label="Showing In Detail" />
+        <activity
+            android:name=".SearchActivity"
+            android:label="Search" />
+        <activity
+            android:name=".UsersRecipeAndComments"
+            android:label="User Created" />
+        <activity
+            android:name=".GetuserInformationActivity"
+            android:label="User Information" />
+        <activity
+            android:name=".DeleteUserActivity"
+            android:label="Delete User" />
     </application>
 
 </manifest>

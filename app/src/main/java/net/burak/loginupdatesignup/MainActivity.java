@@ -311,6 +311,11 @@ public class MainActivity extends AppCompatActivity {
             this.finishAffinity();
 
         }
+        if (item.getItemId() == R.id.action_search) {
+            Intent intentSearch = new Intent(getApplicationContext(), SearchActivity.class);
+            startActivity(intentSearch);
+
+        }
 
         return true;
     }

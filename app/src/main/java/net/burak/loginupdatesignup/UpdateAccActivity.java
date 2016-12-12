@@ -27,9 +27,11 @@ public class UpdateAccActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_update);
+        setContentView(R.layout.activity_user_settings);
 
+        Button but1 = (Button) findViewById(R.id.deleteAccountbutton);
         Button but2 = (Button) findViewById(R.id.uptadeAcc);
+
         up_text_Latitude = (EditText)findViewById(R.id.up_latitude);
         up_text_Longitude = (EditText)findViewById(R.id.up_longitude);
 
@@ -41,6 +43,13 @@ public class UpdateAccActivity extends AppCompatActivity {
         final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/"+iduser;
         UPD_URL=URL_TO_HIT;
         access_token =token;
+
+        but1.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(UpdateAccActivity.this, DeleteUserActivity.class);
+                startActivity(intent);
+            }
+        });
 
         but2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

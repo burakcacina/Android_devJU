@@ -298,7 +298,7 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.menu_home, menu);
         return true;
     }
 
@@ -306,12 +306,24 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        if (item.getItemId() == R.id.action_search) {
+            Intent intentSearch = new Intent(getApplicationContext(), SearchActivity.class);
+            startActivity(intentSearch);
+        }
+        else if (item.getItemId() == R.id.action_showuser) {
+            Intent intentShowuser = new Intent(getApplicationContext(), GetuserInformationActivity.class);
+            startActivity(intentShowuser);
+        }
         if (item.getItemId() == R.id.action_update) {
             Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
             startActivity(intentUpdate);
         }
-        else if (item.getItemId() == R.id.action_exit) {
-                this.finishAffinity();
+        if (item.getItemId() == R.id.action_created) {
+            Intent intentUpdate = new Intent(getApplicationContext(), UsersRecipeAndComments.class);
+            startActivity(intentUpdate);
+        }
+        if (item.getItemId() == R.id.action_exit) {
+            this.finishAffinity();
         }
         return true;
     }

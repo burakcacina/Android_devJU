@@ -4,7 +4,7 @@ import java.util.List;
 
 public class RecipeModel {
     private int id;
-    private String movie;
+    private String recipe;
     private String description;
     private int created;
     private String userid;
@@ -28,10 +28,10 @@ public class RecipeModel {
     }
 
     public String getName() {
-        return movie;
+        return recipe;
     }
     public void setName(String name) {
-        this.movie = name;
+        this.recipe = name;
     }
 
     public int getCreated() { return created; }

@@ -35,13 +35,30 @@
         android:inputType="numberDecimal"/>
 
     <Button
-        android:layout_width="130dp"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:text="Update"
+        android:text="Update Account"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30dp"
         android:id="@+id/uptadeAcc"
         />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OR"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        />
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Delete Account"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
+            android:id="@+id/deleteAccountbutton" />
 
-</LinearLayout>
+    </LinearLayout>
+
