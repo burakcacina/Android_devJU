@@ -1,4 +1,5 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
+
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -22,11 +23,18 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
+
 public class SignupActivity extends AppCompatActivity {
 
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
-    EditText ET_LATITUTE,ET_LONGITUTE,ET_USER_NAME,ET_USER_PASS,ET_REG_USER_PASS2;
-    String user_name,user_pass,latitute,longitute,strPass2,reg_user_pass_confirmation;
+    EditText ET_USER_NAME,ET_USER_PASS,ET_REG_USER_PASS2;
+    String user_name,user_pass,reg_user_pass_confirmation;
     LoginDataBaseAdapter loginDataBaseAdapter;
 
 
@@ -38,12 +46,9 @@ public class SignupActivity extends AppCompatActivity {
         Button but1 = (Button) findViewById(R.id.userReg);
         ET_USER_NAME= (EditText)findViewById(R.id.new_user_name);
         ET_USER_PASS = (EditText)findViewById(R.id.new_user_pass);
-        ET_LATITUTE = (EditText)findViewById(R.id.Latitute);
-        ET_LONGITUTE = (EditText)findViewById(R.id.Longitute);
         ET_REG_USER_PASS2 = (EditText) findViewById(R.id.reg_user_pass_confirmation);
 
-
-        // To start fetching the data when app start, uncomment below line to start the async task.
+        //USED FOR TO INSERT USERNAME AND ID TO THE DATABASE
         loginDataBaseAdapter=new LoginDataBaseAdapter(this);
         loginDataBaseAdapter=loginDataBaseAdapter.open();
 
@@ -59,6 +64,7 @@ public class SignupActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
         }
 
         @SuppressWarnings("WrongThread")
@@ -85,23 +91,25 @@ public class SignupActivity extends AppCompatActivity {
 
                 user_pass =ET_USER_PASS.getText().toString();
                 user_name =ET_USER_NAME.getText().toString();
-                latitute  =ET_LATITUTE.getText().toString();
-                longitute =ET_LONGITUTE.getText().toString();
 
                 reg_user_pass_confirmation = ET_REG_USER_PASS2.getText().toString();
 
-                if (user_pass.equals(reg_user_pass_confirmation)) {
-                    System.out.println("error");
+                Response r = new Response();
+
+
+                if (!user_pass.equals(reg_user_pass_confirmation)) {
+                    System.out.println("PASSWORD NOT EQUAL");
+                    r.response_notmatch = "not match";
+                }
+                else{
                     jsonParam.put("password", user_pass);
+
                 }
 
-
-
                 jsonParam.put("userName",user_name);
-                jsonParam.put("latitude", latitute);
-                jsonParam.put("longitude", longitute);
+                jsonParam.put("latitude", 0);
+                jsonParam.put("longitude", 0);
 
-                Response r = new Response();
 
                 OutputStreamWriter out = new OutputStreamWriter(httpURLConnection.getOutputStream());
                 out.write(jsonParam.toString());
@@ -120,6 +128,7 @@ public class SignupActivity extends AppCompatActivity {
                     JSONObject myJson = new JSONObject(sb.toString());
                     r.response_id = myJson.optString("id");
                     r.response_error=null;
+
                     Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
                     intent.putExtra("id", r.response_id);
                     startActivity(intent);
@@ -157,22 +166,22 @@ public class SignupActivity extends AppCompatActivity {
 
         public class Response {
             public String response_error;
+            public String response_notmatch;
             public String response_id;
         }
 
         protected void onPostExecute(Response r) {
-            if (r.response_error != null && r.response_id == null) {
+            if (r.response_notmatch != null) {
+                Toast.makeText(getApplicationContext(), "Password's not equal", Toast.LENGTH_LONG).show();
+            }
+            else if(r.response_error != null && r.response_id == null) {
                 Toast.makeText(getApplicationContext(), r.response_error, Toast.LENGTH_LONG).show();
             }
             else if(r.response_id != null && r.response_error == null) {
                 Toast.makeText(getApplicationContext(), "Account Created", Toast.LENGTH_LONG).show();
                 Toast.makeText(getApplicationContext(), "Redirecting Login Screen", Toast.LENGTH_LONG).show();
-                System.out.println(r.response_id);
+                loginDataBaseAdapter.insertEntry(user_name, r.response_id); //INSERTING ID AND NAME USING LOGINDATABASE CLASS
             }
-            loginDataBaseAdapter.insertEntry(user_name, r.response_id);
-
         }
-
     }
-
 }

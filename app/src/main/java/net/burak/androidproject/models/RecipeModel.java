@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup.models;
+package net.burak.androidproject.models;
 
 import java.util.List;
 

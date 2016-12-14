@@ -43,23 +43,6 @@
         android:layout_marginTop="20dp"
         android:inputType="textPassword"
         />
-    <EditText
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:hint="Latitute"
-        android:id="@+id/Latitute"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="40dp"
-        />
-    <EditText
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:hint="Longitute"
-        android:id="@+id/Longitute"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="40dp"
-        />
-
     <Button
         android:layout_width="130dp"
         android:layout_height="wrap_content"

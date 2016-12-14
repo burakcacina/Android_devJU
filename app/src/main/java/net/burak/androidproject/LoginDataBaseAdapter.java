@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,27 +6,28 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
 public class LoginDataBaseAdapter
 {
-	static final String DATABASE_NAME = "login3d.db";
+	static final String DATABASE_NAME = "loginuser.db";
 	static final int DATABASE_VERSION = 1;
-	public static final int NAME_COLUMN = 1;
-	// TODO: Create public field for each column in your table.
-	// SQL Statement to create a new database.
-	static final String DATABASE_CREATE = "create table "+"LOGIN3D"+
+
+	static final String DATABASE_CREATE = "create table "+"LOGINUSER"+
 			"( " +"ID"+" integer primary key autoincrement,"+ "USERNAME  text,USERID text); ";
-	// Variable to hold the database instance
+
 	public  SQLiteDatabase db;
-	// Context of the application using the database.
 	private final Context context;
-	// Database open/upgrade helper
 	private DataBaseHelper dbHelper;
 	public LoginDataBaseAdapter(Context _context)
 	{
 		context = _context;
 		dbHelper = new DataBaseHelper(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
-	public  LoginDataBaseAdapter open() throws SQLException
+	public LoginDataBaseAdapter open() throws SQLException
 	{
 		db = dbHelper.getWritableDatabase();
 		return this;
@@ -44,17 +45,15 @@ public class LoginDataBaseAdapter
 	public void insertEntry(String userName,String userID)
 	{
 		ContentValues newValues = new ContentValues();
-		// Assign values for each row.
+
 		newValues.put("USERNAME", userName);
 		newValues.put("USERID",userID);
 
-		// Insert the row into your table
-		db.insert("LOGIN3D", null, newValues);
-		///Toast.makeText(context, "Reminder Is Successfully Saved", Toast.LENGTH_LONG).show();
+		db.insert("LOGINUSER", null, newValues);
 	}
 	public String getSinlgeEntry(String userName)
 	{
-		Cursor cursor=db.query("LOGIN3D", null, " USERNAME=?", new String[]{userName}, null, null, null);
+		Cursor cursor=db.query("LOGINUSER", null, " USERNAME=?", new String[]{userName}, null, null, null);
 		if(cursor.getCount()<1) // UserName Not Exist
 		{
 			cursor.close();
@@ -67,13 +66,17 @@ public class LoginDataBaseAdapter
 	}
 	public void  updateEntry(String userName,String userID)
 	{
-		// Define the updated row content.
 		ContentValues updatedValues = new ContentValues();
-		// Assign values for each row.
 		updatedValues.put("USERNAME", userName);
 		updatedValues.put("USERID",userID);
 
 		String where="USERNAME = ?";
-		db.update("LOGIN3D",updatedValues, where, new String[]{userName});
+		db.update("LOGINUSER",updatedValues, where, new String[]{userName});
 	}
+	public Integer Deleteuser(String userID)
+	{
+		return db.delete("LOGINUSER","USERID = ?",new String[] {userID});
+	}
+
+
 }

@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,12 +24,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
 public class LoginActivity extends AppCompatActivity {
 
     LoginDataBaseAdapter loginDataBaseAdapter;
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/tokens/password";
     EditText ET_REG_USER_NAME, ET_REG_USER_PASS,ET_REG_USER_PASS2;
-    String reg_user_name, reg_user_pass,reg_user_pass_confirmation;
+    String reg_user_name, reg_user_pass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,18 +46,16 @@ public class LoginActivity extends AppCompatActivity {
         ET_REG_USER_PASS2 = (EditText) findViewById(R.id.reg_user_pass_confirmation);
 
 
-        Button but2 = (Button) findViewById(R.id.userLog);
+        Button but1 = (Button) findViewById(R.id.userLog);
 
         loginDataBaseAdapter=new LoginDataBaseAdapter(this);
         loginDataBaseAdapter=loginDataBaseAdapter.open();
 
-        // To start fetching the data when app start, uncomment below line to start the async task.
-        but2.setOnClickListener(new View.OnClickListener() {
+        but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new LoginActivity.JSONTask().execute(URL_TO_HIT);
-
             }
-        });        // To start fetching the data when app start, uncomment below line to start the async task.
+        });
     }
 
     public class JSONTask extends AsyncTask<String, String, JSONTask.Response> {
@@ -103,13 +106,11 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     br.close();
+
                     JSONObject myJson = new JSONObject(sb.toString());
                     r.response_expires_in = myJson.optString("expires_in");
                     r.response_access_token = myJson.optString("access_token");
 
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    intent.putExtra("access_token", r.response_access_token);
-                    startActivity(intent);
                     return r;
 
                 } else {
@@ -151,16 +152,20 @@ public class LoginActivity extends AppCompatActivity {
 
             } else if (r.response_access_token != null && r.response_expires_in != null) {
                 Toast.makeText(getApplicationContext(), "Login Successful", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                startActivity(intent);
             }
+
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("access_token", r.response_access_token);
             editor.commit();
 
-            String storedPassword=loginDataBaseAdapter.getSinlgeEntry(reg_user_name);
+
+            String storedID=loginDataBaseAdapter.getSinlgeEntry(reg_user_name);
             SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
             SharedPreferences.Editor editor2 = prefs2.edit();
-            editor2.putString("USERID", storedPassword);
+            editor2.putString("USERID", storedID);
             editor2.commit();
         }
     }

@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

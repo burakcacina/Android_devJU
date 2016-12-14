@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

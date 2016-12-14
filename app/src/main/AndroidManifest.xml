@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.burak.loginupdatesignup">
+    package="net.burak.androidproject">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -8,11 +8,11 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Mjilk Recipe"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="net.burak.androidproject.MainActivity"
             android:label="Welcome Mjilk Recipe">
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -23,46 +23,46 @@
         </activity>
 
         <activity
-            android:name=".UpdateAccActivity"
+            android:name="net.burak.androidproject.UpdateAccActivity"
             android:label="Update Account" />
         <activity
-            android:name=".HomeActivity"
+            android:name="net.burak.androidproject.HomeActivity"
             android:label="Recipes" />
         <activity
-            android:name=".LoginActivity"
+            android:name="net.burak.androidproject.LoginActivity"
             android:label="Login" />
         <activity
-            android:name=".SignupActivity"
+            android:name="net.burak.androidproject.SignupActivity"
             android:label="Create Account" />
         <activity
-            android:name=".DetailActivity"
+            android:name="net.burak.androidproject.DetailActivity"
             android:label="Showing Recipe" />
         <activity
-            android:name=".DeleteRecipeActivity"
+            android:name="net.burak.androidproject.DeleteRecipeActivity"
             android:label="Delete Recipe" />
         <activity
-            android:name=".CreateRecipeActivity"
+            android:name="net.burak.androidproject.CreateRecipeActivity"
             android:label="CreateRecipe" />
         <activity
-            android:name=".EditRecipeActivity"
+            android:name="net.burak.androidproject.EditRecipeActivity"
             android:label="Edit Recipe" />
         <activity
-            android:name=".UpdateRecipeActivity"
+            android:name="net.burak.androidproject.UpdateRecipeActivity"
             android:label="Update Recipe" />
         <activity
-            android:name=".MainDetailActivity"
+            android:name="net.burak.androidproject.MainDetailActivity"
             android:label="Showing In Detail" />
         <activity
-            android:name=".SearchActivity"
+            android:name="net.burak.androidproject.SearchActivity"
             android:label="Search" />
         <activity
-            android:name=".UsersRecipeAndComments"
+            android:name="net.burak.androidproject.UsersRecipeAndComments"
             android:label="User Created" />
         <activity
-            android:name=".GetuserInformationActivity"
+            android:name="net.burak.androidproject.GetuserInformationActivity"
             android:label="User Information" />
         <activity
-            android:name=".DeleteUserActivity"
+            android:name="net.burak.androidproject.DeleteUserActivity"
             android:label="Delete User" />
     </application>
 

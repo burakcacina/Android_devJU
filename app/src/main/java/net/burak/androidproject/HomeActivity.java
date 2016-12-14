@@ -1,15 +1,11 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,7 +29,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-import net.burak.loginupdatesignup.models.RecipeModel;
+import net.burak.androidproject.models.RecipeModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +44,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
 public class HomeActivity extends AppCompatActivity {
 
     private ListView lvRecipes;
@@ -57,14 +58,6 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);
-        String dataa = prefs2.getString("USERID", "no id"); //no id: default value
-        System.out.println(dataa);
-
-        SharedPreferences prefs3 = PreferenceManager.getDefaultSharedPreferences(this);
-        String data = prefs3.getString("access_token", "no id"); //no id: default value
-        System.out.println(data);
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -82,64 +75,49 @@ public class HomeActivity extends AppCompatActivity {
 
         lvRecipes = (ListView)findViewById(R.id.lvRecipes);
 
-        Button but1 = (Button) findViewById(R.id.page1);
-        Button but2 = (Button) findViewById(R.id.page2);
-        Button but3 = (Button) findViewById(R.id.page3);
-        Button but4 = (Button) findViewById(R.id.page4);
-        Button but5 = (Button) findViewById(R.id.page5);
-        Button but6 = (Button) findViewById(R.id.createRecipe);
+        Button but1 = (Button) findViewById(R.id.pagenext);
+        Button but2 = (Button) findViewById(R.id.pageprev);
+        Button but3 = (Button) findViewById(R.id.createRecipe);
 
         String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=1";
         new JSONTask().execute(URL_TO_HIT);
 
+
+        final int[] counter = {1};
         but1.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
 
+            @Override
+            public void onClick(View v) {
                 {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=1";
+                    counter[0] +=1;
+                    String pagenunmber = Integer.toString(counter[0]);
+                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
                     new JSONTask().execute(URL_TO_HIT);
                 }
             }
         });
+
         but2.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
 
+            @Override
+            public void onClick(View v) {
                 {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=2";
-                    new JSONTask().execute(URL_TO_HIT);
+                    if (counter[0] != 1 ) {
+                        counter[0] -= 1;
+                        String pagenunmber = Integer.toString(counter[0]);
+                        String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
+                        new JSONTask().execute(URL_TO_HIT);
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(), "This is Final Page", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
+
+
         but3.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=3";
-                    new JSONTask().execute(URL_TO_HIT);
-                }
-            }
-        });
-        but4.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=4";
-                    new JSONTask().execute(URL_TO_HIT);
-                }
-            }
-        });
-        but5.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                {
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=9";
-                    new JSONTask().execute(URL_TO_HIT);
-                }
-            }
-        });
-        but6.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
                 {
                     Intent intent = new Intent(HomeActivity.this, CreateRecipeActivity.class);
                     startActivity(intent);
@@ -207,7 +185,7 @@ public class HomeActivity extends AppCompatActivity {
             super.onPostExecute(result);
             dialog.dismiss();
             if(result != null) {
-                RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.row, result);
+                RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_showrecipe, result);
                 lvRecipes.setAdapter(adapter);
                 lvRecipes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -219,7 +197,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(), "Not able to fetch data from server, please check url.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Not able to fetch data from server, no internet connection found.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -302,29 +280,29 @@ public class HomeActivity extends AppCompatActivity {
         return true;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (item.getItemId() == R.id.action_search) {
-            Intent intentSearch = new Intent(getApplicationContext(), SearchActivity.class);
-            startActivity(intentSearch);
-        }
-        else if (item.getItemId() == R.id.action_showuser) {
-            Intent intentShowuser = new Intent(getApplicationContext(), GetuserInformationActivity.class);
-            startActivity(intentShowuser);
-        }
-        if (item.getItemId() == R.id.action_update) {
-            Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
+            Intent intentUpdate = new Intent(getApplicationContext(), SearchActivity.class);
             startActivity(intentUpdate);
         }
-        if (item.getItemId() == R.id.action_created) {
-            Intent intentUpdate = new Intent(getApplicationContext(), UsersRecipeAndComments.class);
-            startActivity(intentUpdate);
+        else if(item.getItemId() == R.id.action_showuser) {
+                Intent intentUpdate = new Intent(getApplicationContext(),GetuserInformationActivity.class);
+                startActivity(intentUpdate);
         }
-        if (item.getItemId() == R.id.action_exit) {
-            this.finishAffinity();
+        else if(item.getItemId() == R.id.action_update) {
+                Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
+                startActivity(intentUpdate);
         }
+        else if (item.getItemId() == R.id.action_exit) {
+                this.finishAffinity();
+        }
+        else if (item.getItemId() == R.id.action_created) {
+            Intent intentUpdatea = new Intent(getApplicationContext(), UsersRecipeAndComments.class);
+            startActivity(intentUpdatea);
+        }
+
         return true;
     }
 

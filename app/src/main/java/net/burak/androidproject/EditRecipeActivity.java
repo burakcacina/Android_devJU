@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +23,11 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+/* This is Created
+        by
+      BURAK CACINA
+*/
 
 public class EditRecipeActivity extends AppCompatActivity {
     EditText ET_RECIPENAME,ET_DESCRIPTION,ET_DIRECTION,ET_DIRECTION_2;
@@ -51,7 +56,6 @@ public class EditRecipeActivity extends AppCompatActivity {
         but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new JSONTask().execute(URL_TO_HIT);
-
             }
         });
     }
@@ -73,7 +77,7 @@ public class EditRecipeActivity extends AppCompatActivity {
             HttpURLConnection httpURLConnection = null;
 
             try {
-                java.net.URL url = new URL(params[0]);
+                URL url = new URL(params[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
                 httpURLConnection.setRequestProperty("Accept", "application/json");
@@ -114,7 +118,7 @@ public class EditRecipeActivity extends AppCompatActivity {
 
                 int HttpResult = httpURLConnection.getResponseCode();
                 if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
-                    System.out.println("CREATED");
+                    System.out.println("EDITED");
 
                 } else {
                     System.out.println(httpURLConnection.getResponseCode());

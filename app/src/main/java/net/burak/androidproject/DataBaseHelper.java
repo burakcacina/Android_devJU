@@ -1,10 +1,15 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+/* This is Created
+        by
+      BURAK CACINA
+*/
 
 public class DataBaseHelper extends SQLiteOpenHelper
 {
@@ -25,6 +30,4 @@ public class DataBaseHelper extends SQLiteOpenHelper
 		_db.execSQL("DROP TABLE IF EXISTS " + "TEMPLATE");
 		onCreate(_db);
 	}
-
-
 }

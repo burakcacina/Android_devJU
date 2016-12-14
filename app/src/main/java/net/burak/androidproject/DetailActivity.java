@@ -1,19 +1,24 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -22,7 +27,7 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-import net.burak.loginupdatesignup.models.RecipeModel;
+import net.burak.androidproject.models.RecipeModel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,18 +41,21 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainDetailActivity extends ActionBarActivity {
+/* This is Created
+        by
+      BURAK CACINA
+*/
 
-    int sa;
+public class DetailActivity extends AppCompatActivity {
+
+    int recipeID;
     private ListView lvRecipes;
     private ProgressDialog dialog;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail_main);
-
+        setContentView(R.layout.activity_detail);
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -61,7 +69,7 @@ public class MainDetailActivity extends ActionBarActivity {
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
                 .defaultDisplayImageOptions(defaultOptions)
                 .build();
-        ImageLoader.getInstance().init(config); // Do it on Application start
+        ImageLoader.getInstance().init(config);
 
         lvRecipes = (ListView) findViewById(R.id.lvRecipes);
 
@@ -69,10 +77,11 @@ public class MainDetailActivity extends ActionBarActivity {
         if (bundle != null) {
             String json = bundle.getString("recipeModel");
             RecipeModel recipeModel = new Gson().fromJson(json, RecipeModel.class);
-            sa = recipeModel.getid();
+            recipeID = recipeModel.getid();
         }
-        final String url1 = "http://52.211.99.140/api/v1/recipes/" + sa;
-        new JSONTask().execute(url1);
+        final String url = "http://52.211.99.140/api/v1/recipes/" + recipeID;
+
+        new JSONTask().execute(url);
     }
 
     public class JSONTask extends AsyncTask<String, String, List<RecipeModel>> {
@@ -81,7 +90,6 @@ public class MainDetailActivity extends ActionBarActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             dialog.show();
-
         }
 
         @Override
@@ -150,8 +158,78 @@ public class MainDetailActivity extends ActionBarActivity {
         protected void onPostExecute(final List<RecipeModel> result) {
             super.onPostExecute(result);
             dialog.dismiss();
-            RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail, result);
+
+            RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail_recipe, result);
             lvRecipes.setAdapter(adapter);
+            Button but1 = (Button) findViewById(R.id.deletebutton);
+            Button but2 = (Button) findViewById(R.id.updatebutton);
+            Button but3 = (Button) findViewById(R.id.editbutton);
+
+            SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
+            final String userID = prefs2.getString("USERID", "no id"); //no id: default value
+
+            RecipeModel recipeModel = result.get(0);
+            int recipeid = recipeModel.getid();
+
+            SharedPreferences prefs3 = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
+            SharedPreferences.Editor editor3 = prefs3.edit();
+            editor3.putInt("RECIPEID", recipeid);
+            editor3.commit();
+
+            String sa = recipeModel.getUserid();
+
+            if(userID.equals(sa)) {
+                but1.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Intent intent = new Intent(DetailActivity.this, DeleteRecipeActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                });
+                but2.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Intent intent = new Intent(DetailActivity.this, UpdateRecipeActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                });
+                but3.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Intent intent = new Intent(DetailActivity.this, EditRecipeActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                });
+            }
+            else {
+                but1.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Toast.makeText(getApplicationContext(), "Can't have access to delete", Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+                });
+                but2.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Toast.makeText(getApplicationContext(), "Can't have access to update", Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+                });
+                but3.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        {
+                            Toast.makeText(getApplicationContext(), "Can't have access to edit", Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -212,32 +290,31 @@ public class MainDetailActivity extends ActionBarActivity {
                     }
                 });
 
-                // Then later, when you want to display image
 
                 holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-                holder.tvDescription.setText(recipeModelList.get(position).getDescription());
-                holder.tvUsername.setText(recipeModelList.get(position).getUserName());
+                holder.tvDescription.setText("Description: " + "\n" + recipeModelList.get(position).getDescription());
+                holder.tvUsername.setText("User Name: " +recipeModelList.get(position).getUserName());
 
                 StringBuffer stringBuffer = new StringBuffer();
                 for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
                     stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
                 }
 
-                holder.tvDirections.setText("Directions" + "\n" + stringBuffer);
+                holder.tvDirections.setText("Directions:" + "\n" + stringBuffer);
 
             }
             else {
 
                 holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-                holder.tvDescription.setText(recipeModelList.get(position).getDescription());
-                holder.tvUsername.setText(recipeModelList.get(position).getUserName());
+                holder.tvDescription.setText("Description: " + "\n" + recipeModelList.get(position).getDescription());
+                holder.tvUsername.setText("User Name: " + recipeModelList.get(position).getUserName());
 
                 StringBuffer stringBuffer = new StringBuffer();
                 for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
                     stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
                 }
 
-                holder.tvDirections.setText("Directions" + "\n" + stringBuffer);
+                holder.tvDirections.setText("Directions:" + "\n" + stringBuffer);
             }
 
             return convertView;

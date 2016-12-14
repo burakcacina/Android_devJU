@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,12 +24,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
 public class CreateRecipeActivity extends AppCompatActivity {
 
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes";
     EditText ET_RECIPENAME,ET_DESCRIPTION,ET_DIRECTION,ET_DIRECTION_2;
     String access_token,USERID,recipe_name,recipe_directions,recipe_descriptions,recipe_directions2,error;
-    int l=1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,23 +45,22 @@ public class CreateRecipeActivity extends AppCompatActivity {
         ET_DIRECTION = (EditText)findViewById(R.id.recipe_directions);
         ET_DIRECTION_2 = (EditText)findViewById(R.id.recipe_directions2);
 
+        //Needed for Specification
         SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);
         String token = prefs2.getString("access_token", "no id");
         access_token =token;
 
+        //Need for Creator ID while creating recipe
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String iduser = prefs.getString("USERID", "no id");
         USERID = iduser;
 
-        System.out.println(USERID);
-        System.out.println(access_token);
-
+        //Executing Task
         but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new JSONTask().execute(URL_TO_HIT);
-
             }
-        });        // To start fetching the data when app start, uncomment below line to start the async task.
+        });
 
     }
 
@@ -87,7 +90,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("Host", "11.12.21.22");
                 httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
                 httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.connect(); //Create JSONObject here JSONObject
+                httpURLConnection.connect();
                 JSONObject jsonParam = new JSONObject();
 
                 recipe_name =ET_RECIPENAME.getText().toString();
@@ -96,7 +99,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 recipe_directions2  =ET_DIRECTION_2.getText().toString();
 
                 JSONArray arrForB = new JSONArray();
-                for(l=1; l<3; l++) {
+                for(int l=1; l<3; l++) {
                     if (l == 1) {
                         JSONObject itemB = new JSONObject();
                         itemB.put("order", l);
@@ -121,26 +124,23 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
                 int HttpResult = httpURLConnection.getResponseCode();
                 if (HttpResult == HttpURLConnection.HTTP_CREATED) {
-                    System.out.println("OLDUUU");
+                    System.out.println("created");
 
                 } else {
-                    System.out.println(httpURLConnection.getResponseCode());
                     BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream(), "utf-8"));
                     String line = null;
+
                     while ((line = br.readLine()) != null) {
                         sb.append(line + "\n");
                     }
                     br.close();
+
                     JSONObject jsonObj = new JSONObject(sb.toString());
                     JSONArray arrayJson2 = jsonObj.getJSONArray("errors");
 
-
                     for (int i = 0; i < arrayJson2.length(); i++) {
                         error = arrayJson2.getString(i);
-                        System.out.println(error);
-
                     }
-                    System.out.println(error);
                     return error;
                 }
             } catch (MalformedURLException e) {
@@ -161,7 +161,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         protected void onPostExecute(String error) {
             if (error != null) {
                 Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-                System.out.println(error);
             }
             else {
                 Intent intent = new Intent(CreateRecipeActivity.this, HomeActivity.class);

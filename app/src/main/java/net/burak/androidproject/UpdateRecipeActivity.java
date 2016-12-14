@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

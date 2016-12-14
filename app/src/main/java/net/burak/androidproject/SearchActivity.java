@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +25,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-import net.burak.loginupdatesignup.models.RecipeModel;
+import net.burak.androidproject.models.RecipeModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;

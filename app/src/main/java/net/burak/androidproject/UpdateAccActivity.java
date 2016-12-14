@@ -1,4 +1,4 @@
-package net.burak.loginupdatesignup;
+package net.burak.androidproject;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,9 +20,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/* This is Created
+        by
+      BURAK CACINA
+*/
+
 public class UpdateAccActivity extends AppCompatActivity {
     EditText up_text_Longitude,up_text_Latitude;
-    String access_token,UPD_URL,up_latitude,up_longitude,response;
+    String access_token,up_latitude,up_longitude,response;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,13 +40,13 @@ public class UpdateAccActivity extends AppCompatActivity {
         up_text_Latitude = (EditText)findViewById(R.id.up_latitude);
         up_text_Longitude = (EditText)findViewById(R.id.up_longitude);
 
-        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(UpdateAccActivity.this);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateAccActivity.this);
-
-        final String token = prefs2.getString("access_token", "no id");
         final String iduser = prefs.getString("USERID", "no id");
+
+        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(UpdateAccActivity.this);
+        final String token = prefs2.getString("access_token", "no id");
+
         final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/"+iduser;
-        UPD_URL=URL_TO_HIT;
         access_token =token;
 
         but1.setOnClickListener(new View.OnClickListener() {
@@ -50,13 +55,13 @@ public class UpdateAccActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
         but2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new UpdateAccActivity.JSONTask().execute(URL_TO_HIT);
             }
         });
     }
+
     public class JSONTask extends AsyncTask<String, Void, String> {
 
         @Override
@@ -69,7 +74,7 @@ public class UpdateAccActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             HttpURLConnection httpURLConnection = null;
             try {
-                URL url = new URL(UPD_URL);
+                URL url = new URL(params[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
@@ -89,10 +94,7 @@ public class UpdateAccActivity extends AppCompatActivity {
                 out.close();
 
                 int HttpResult = httpURLConnection.getResponseCode();
-
                 if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
-                    Intent intent = new Intent(UpdateAccActivity.this, HomeActivity.class);
-                    startActivity(intent);
                     response = "UPDATED";
                     return response;
                 }
