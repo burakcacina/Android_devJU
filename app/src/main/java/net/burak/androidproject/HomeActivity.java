@@ -1,5 +1,6 @@
 package net.burak.androidproject;
 
+import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +32,7 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import net.burak.androidproject.models.RecipeModel;
+import net.burak.androidproject.models.RecipesDB;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,11 +56,16 @@ public class HomeActivity extends AppCompatActivity {
 
     private ListView lvRecipes;
     private ProgressDialog dialog;
+    private int newPage;
+    private boolean offlineMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        offlineMode = false;
+        newPage = 1;
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -90,6 +98,7 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 {
                     counter[0] +=1;
+                    newPage = counter[0];
                     String pagenunmber = Integer.toString(counter[0]);
                     String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
                     new JSONTask().execute(URL_TO_HIT);
@@ -104,6 +113,7 @@ public class HomeActivity extends AppCompatActivity {
                 {
                     if (counter[0] != 1 ) {
                         counter[0] -= 1;
+                        newPage = counter[0];
                         String pagenunmber = Integer.toString(counter[0]);
                         String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
                         new JSONTask().execute(URL_TO_HIT);
@@ -138,6 +148,35 @@ public class HomeActivity extends AppCompatActivity {
         protected List<RecipeModel> doInBackground(String... params) {
             StringBuilder sb = new StringBuilder();
             HttpURLConnection httpURLConnection = null;
+
+            if(!RecipesDB.isInternetconnected(getApplicationContext()))
+            {
+                Log.v("CONN", "Offline mode entered");
+                offlineMode = true;
+
+                List<RecipeModel> RecipeModelList = new ArrayList<>();
+
+                JSONArray parentArray = null;
+                try {
+                    parentArray = new JSONArray(RecipesDB.fetchResp(newPage, getApplicationContext()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Gson gson = new Gson();
+                for (int i = 0; i < parentArray.length(); i++) {
+                    JSONObject finalObject = null;
+                    try {
+                        finalObject = parentArray.getJSONObject(i);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
+                    RecipeModelList.add(recipeModel);
+                }
+
+                return RecipeModelList;
+            }
+
             try {
                 URL url = new URL(params[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -165,6 +204,8 @@ public class HomeActivity extends AppCompatActivity {
                     RecipeModelList.add(recipeModel);
                 }
 
+                RecipesDB.insertResponse(sb.toString(), newPage, getApplicationContext());
+
                 return RecipeModelList;
 
             } catch (MalformedURLException e) {
@@ -177,6 +218,7 @@ public class HomeActivity extends AppCompatActivity {
                 if (httpURLConnection != null)
                     httpURLConnection.disconnect();
             }
+
             return  null;
         }
 
@@ -193,6 +235,7 @@ public class HomeActivity extends AppCompatActivity {
                         RecipeModel recipeModel = result.get(position);
                         Intent intent = new Intent(HomeActivity.this, DetailActivity.class);
                         intent.putExtra("recipeModel", new Gson().toJson(recipeModel));
+                        intent.putExtra("offline", offlineMode);
                         startActivity(intent);
                     }
                 });
@@ -234,27 +277,30 @@ public class HomeActivity extends AppCompatActivity {
 
             final ProgressBar progressBar = (ProgressBar)convertView.findViewById(R.id.progressBar);
 
-            ImageLoader.getInstance().displayImage(RecipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
-                @Override
-                public void onLoadingStarted(String imageUri, View view) {
-                    progressBar.setVisibility(View.VISIBLE);
-                }
+            if(!offlineMode) {
+                ImageLoader.getInstance().displayImage(RecipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
+                    @Override
+                    public void onLoadingStarted(String imageUri, View view) {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
 
-                @Override
-                public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                    @Override
+                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                        progressBar.setVisibility(View.GONE);
+                    }
 
-                @Override
-                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                    @Override
+                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                        progressBar.setVisibility(View.GONE);
+                    }
 
-                @Override
-                public void onLoadingCancelled(String imageUri, View view) {
-                    progressBar.setVisibility(View.GONE);
-                }
-            });
+                    @Override
+                    public void onLoadingCancelled(String imageUri, View view) {
+                        progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }
+            else progressBar.setVisibility(View.GONE);
 
             holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline());
             holder.tvRecipeID.setText("ID: " + RecipeModelList.get(position).getid());

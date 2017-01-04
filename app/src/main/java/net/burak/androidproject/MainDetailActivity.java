@@ -92,6 +92,7 @@ public class MainDetailActivity extends ActionBarActivity {
 
         @Override
         protected List<RecipeModel> doInBackground(String... params) {
+            // TODO Handle offline mode
             StringBuilder sb = new StringBuilder();
             HttpURLConnection httpURLConnection = null;
             try {

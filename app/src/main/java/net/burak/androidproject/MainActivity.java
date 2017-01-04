@@ -3,11 +3,13 @@ package net.burak.androidproject;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,6 +33,7 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import net.burak.androidproject.models.RecipeModel;
+import net.burak.androidproject.models.RecipesDB;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,11 +57,16 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView lvRecipes;
     private ProgressDialog dialog;
+    private int newPage;
+    private boolean offlineMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        offlineMode = false;
+        newPage = 1;
 
         //This is used for clearing SharedPrefrences
         PreferenceManager.getDefaultSharedPreferences(getBaseContext()).
@@ -95,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 {
                 counter[0] +=1;
+                newPage = counter[0];
                 String pagenumber = Integer.toString(counter[0]);
                     String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenumber;
                     new JSONTask().execute(URL_TO_HIT);
@@ -109,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     if (counter[0] != 1 ) {
                         counter[0] -= 1;
+                        newPage = counter[0];
                         String pagenumber = Integer.toString(counter[0]);
                         String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenumber;
                         new JSONTask().execute(URL_TO_HIT);
@@ -154,6 +164,35 @@ public class MainActivity extends AppCompatActivity {
         protected List<RecipeModel> doInBackground(String... params) {
             StringBuilder sb = new StringBuilder();
             HttpURLConnection httpURLConnection = null;
+
+            if(!RecipesDB.isInternetconnected(getApplicationContext()))
+            {
+                Log.v("CONN", "Offline mode entered");
+                offlineMode = true;
+
+                List<RecipeModel> RecipeModelList = new ArrayList<>();
+
+                JSONArray parentArray = null;
+                try {
+                    parentArray = new JSONArray(RecipesDB.fetchResp(newPage, getApplicationContext()));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Gson gson = new Gson();
+                for (int i = 0; i < parentArray.length(); i++) {
+                    JSONObject finalObject = null;
+                    try {
+                        finalObject = parentArray.getJSONObject(i);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
+                    RecipeModelList.add(recipeModel);
+                }
+
+                return RecipeModelList;
+            }
+
             try {
                 URL url = new URL(params[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -180,6 +219,8 @@ public class MainActivity extends AppCompatActivity {
                     RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
                     RecipeModelList.add(recipeModel);
                 }
+
+                RecipesDB.insertResponse(sb.toString(), newPage, getApplicationContext());
 
                 return RecipeModelList;
 
@@ -272,8 +313,13 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.GONE);
                 }
             });
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            String uId = prefs.getString("USERID", null);
 
-            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline());
+
+            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline() +
+                    (uId != null ? " ♥ " + uId : "")
+            );
             holder.tvRecipeID.setText("ID: " + RecipeModelList.get(position).getid());
             holder.tvCreated.setText("Created: " + RecipeModelList.get(position).getCreated());
             return convertView;
