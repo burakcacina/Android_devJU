@@ -4,11 +4,14 @@ import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -45,6 +48,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /* This is Created
@@ -58,6 +62,9 @@ public class HomeActivity extends AppCompatActivity {
     private ProgressDialog dialog;
     private int newPage;
     private boolean offlineMode;
+    private HashSet<Integer> favorites = new HashSet<>();
+    private String uId;
+    private String access_token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +97,9 @@ public class HomeActivity extends AppCompatActivity {
         String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=1";
         new JSONTask().execute(URL_TO_HIT);
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(HomeActivity.this);
+        uId = prefs.getString("USERID", null);
+        access_token = prefs.getString("access_token", "no id");
 
         final int[] counter = {1};
         but1.setOnClickListener(new View.OnClickListener() {
@@ -192,7 +202,32 @@ public class HomeActivity extends AppCompatActivity {
                     sb.append(line + "\n");
                 }
 
-                br.close();
+                // TODO Get Favorites
+
+                URL fUrl = new URL("http://52.211.99.140/api/v1/accounts/" + uId + "/favorites");
+                HttpURLConnection fHttpURLConnection = (HttpURLConnection) fUrl.openConnection();
+                fHttpURLConnection.setRequestProperty("Accept", "application/json");
+                fHttpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                fHttpURLConnection.setRequestProperty("Host", "11.12.21.22"); // http://52.211.99.140
+                fHttpURLConnection.setRequestMethod("GET");
+                fHttpURLConnection.connect();
+
+                BufferedReader fBr = new BufferedReader(new InputStreamReader(fHttpURLConnection.getInputStream(), "utf-8"));
+                line = null;
+
+                StringBuilder fSb = new StringBuilder();
+                while ((line = fBr.readLine()) != null) {
+                    fSb.append(line + "\n");
+                }
+
+                fBr.close();
+
+                JSONArray favArray = new JSONArray(fSb.toString());
+                for(int i=0; i<favArray.length(); i++) {
+                    JSONObject finalObject = favArray.getJSONObject(i);
+                    int fId = finalObject.getInt("id");
+                    favorites.add(fId);
+                }
 
                 List<RecipeModel> RecipeModelList = new ArrayList<>();
 
@@ -302,7 +337,9 @@ public class HomeActivity extends AppCompatActivity {
             }
             else progressBar.setVisibility(View.GONE);
 
-            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline());
+            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline() +
+                    (favorites.contains(RecipeModelList.get(position).getid()) ? " ♥ " : "")
+            );
             holder.tvRecipeID.setText("ID: " + RecipeModelList.get(position).getid());
             holder.tvCreated.setText("Created: " + RecipeModelList.get(position).getCreated());
             return convertView;
