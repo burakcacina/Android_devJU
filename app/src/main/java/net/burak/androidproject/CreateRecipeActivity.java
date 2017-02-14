@@ -126,7 +126,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 if (HttpResult == HttpURLConnection.HTTP_CREATED) {
                     System.out.println("created");
 
-                } else {
+                }
+                else {
                     BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream(), "utf-8"));
                     String line = null;
 

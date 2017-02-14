@@ -1,12 +1,17 @@
 package net.burak.androidproject;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,7 +50,6 @@ public class LoginActivity extends AppCompatActivity {
         ET_REG_USER_PASS = (EditText) findViewById(R.id.reg_user_pass);
         ET_REG_USER_PASS2 = (EditText) findViewById(R.id.reg_user_pass_confirmation);
 
-
         Button but1 = (Button) findViewById(R.id.userLog);
 
         loginDataBaseAdapter=new LoginDataBaseAdapter(this);
@@ -57,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
 
     public class JSONTask extends AsyncTask<String, String, JSONTask.Response> {
 
@@ -167,6 +172,9 @@ public class LoginActivity extends AppCompatActivity {
             SharedPreferences.Editor editor2 = prefs2.edit();
             editor2.putString("USERID", storedID);
             editor2.commit();
+
+            Log.e("login access token", r.response_access_token);
+            Log.e("login stored id", storedID);
         }
     }
 }

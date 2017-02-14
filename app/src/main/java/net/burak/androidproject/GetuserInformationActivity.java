@@ -111,23 +111,18 @@ public class GetuserInformationActivity extends AppCompatActivity {
 
         protected void onPostExecute(final Response r) {
 
-            if(r != null) {
-                if (r.response_latitude == 0.0 && r.response_longitude == 0.0) {
-                    Toast.makeText(getApplicationContext(), "Redirected because you dont have Longitude and Latitude", Toast.LENGTH_LONG).show();
-                    Toast.makeText(getApplicationContext(), "Update your account", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(GetuserInformationActivity.this, UpdateAccActivity.class);
-                    startActivity(intent);
-                } else {
 
-                    tvUsername.setText("User: " + r.response_username);
-                    tvlatitude.setText("Latitude: " + String.valueOf(r.response_latitude));
-                    tvlongitude.setText("Longitude: " + String.valueOf(r.response_longitude));
+            if (r.response_latitude == 0.0 && r.response_longitude == 0.0) {
+                Toast.makeText(getApplicationContext(), "Redirected because you dont have Longitude and Latitude", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Update your account", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(GetuserInformationActivity.this, UpdateAccActivity.class);
+                startActivity(intent);
+            } else {
 
-                }
-            }
-            else
-            {
-                Toast.makeText(getApplicationContext(), "ERROR: Server did not return a response", Toast.LENGTH_LONG).show();
+                tvUsername.setText("User: " + r.response_username);
+                tvlatitude.setText("Latitude: " + String.valueOf(r.response_latitude));
+                tvlongitude.setText("Longitude: " + String.valueOf(r.response_longitude));
+
             }
         }
     }

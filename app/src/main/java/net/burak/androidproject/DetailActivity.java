@@ -8,7 +8,9 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -162,11 +164,14 @@ public class DetailActivity extends AppCompatActivity {
             RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail_recipe, result);
             lvRecipes.setAdapter(adapter);
             Button but1 = (Button) findViewById(R.id.deletebutton);
-            Button but2 = (Button) findViewById(R.id.updatebutton);
+            //Button but2 = (Button) findViewById(R.id.updatebutton);
             Button but3 = (Button) findViewById(R.id.editbutton);
+            Button but4 = (Button) findViewById(R.id.go_comment_activity);
 
             SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(DetailActivity.this);
             final String userID = prefs2.getString("USERID", "no id"); //no id: default value
+            //Snackbar.make(findViewById(R.id.lvRecipes), "Detail activity" +  userID, Snackbar.LENGTH_SHORT).show();        //todo delete
+            Log.e("Detail activity", userID);
 
             RecipeModel recipeModel = result.get(0);
             int recipeid = recipeModel.getid();
@@ -187,14 +192,14 @@ public class DetailActivity extends AppCompatActivity {
                         }
                     }
                 });
-                but2.setOnClickListener(new View.OnClickListener() {
+                /*but2.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         {
                             Intent intent = new Intent(DetailActivity.this, UpdateRecipeActivity.class);
                             startActivity(intent);
                         }
                     }
-                });
+                });*/
                 but3.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         {
@@ -213,14 +218,14 @@ public class DetailActivity extends AppCompatActivity {
                         }
                     }
                 });
-                but2.setOnClickListener(new View.OnClickListener() {
+                /*but2.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         {
                             Toast.makeText(getApplicationContext(), "Can't have access to update", Toast.LENGTH_LONG).show();
 
                         }
                     }
-                });
+                });*/
                 but3.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         {
@@ -230,6 +235,13 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 });
             }
+            but4.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(DetailActivity.this, CommentActivity.class);
+                    startActivity(intent);
+                }
+            });
         }
     }
 

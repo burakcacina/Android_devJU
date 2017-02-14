@@ -25,17 +25,26 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
-        <Button
+        <!-- <Button
             android:id="@+id/updatebutton"
             android:text="Update"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content" /> -->
         <Button
             android:id="@+id/deletebutton"
             android:text="Delete"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/go_comment_activity"
+            android:text="Comments"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical" />
+
     </LinearLayout>
 </LinearLayout>
