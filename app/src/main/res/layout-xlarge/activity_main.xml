@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:orientation="vertical" >
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+    <Button
+        android:id="@+id/buttonSignIN"
+        android:layout_weight="1"
+        android:text="Sign In"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/buttonSignUP"
+        android:layout_weight="1"
+        android:text="Sign Up"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+    <GridView
+            android:id="@+id/lvRecipes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:numColumns="2"
+            android:layout_weight="1"
+    />
+
+<LinearLayout
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+    <Button
+        android:id="@+id/pageprev"
+        android:text="Prev Page"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        />
+    <Button
+        android:id="@+id/pagenext"
+        android:text="Next Page"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        />
+
+</LinearLayout>
+</LinearLayout>

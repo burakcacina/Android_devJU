@@ -4,22 +4,6 @@ package net.burak.androidproject.adapters;
  * Created by Cube on 2/6/2017.
  */
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -42,41 +26,36 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RatingBar;
-import android.widget.TextView;
-
+import android.widget.*;
 import com.nostra13.universalimageloader.core.ImageLoader;
-
 import net.burak.androidproject.CommentActivity;
 import net.burak.androidproject.R;
 import net.burak.androidproject.models.CommentModel;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 
 import static android.app.Activity.RESULT_OK;
 
 public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
 
-    static Context context;
-    int layoutResourceId;
-    ArrayList<CommentModel> data = new ArrayList<CommentModel>();
-    static String error;
-    static private String access_token;
-    private View view;
     private static final int RESULT_LOAD_IMAGE = 1;
+    static Context context;
+    static String error;
     static String response;
+    static Uri selectedImage;
+    static private String access_token;
+    private static String commentURL = "http://52.211.99.140/api/v1/comments/";
+    int layoutResourceId;
 
     // for testing purposes
-
-
-    static Uri selectedImage;
-    private static String commentURL = "http://52.211.99.140/api/v1/comments/";
+    ArrayList<CommentModel> data = new ArrayList<CommentModel>();
+    private View view;
     // for testing purposes
 
     public UserCustomAdapter(Context context, int layoutResourceId,
@@ -86,6 +65,31 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
         this.context = context;
         this.data = data;
         this.access_token = access_token;
+    }
+
+    public static void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.e("onActivityResult", "Result code: " + requestCode);
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+
+            selectedImage = data.getData();
+            Log.e("IMAGE PATH", getPath(context, data.getData()));
+            new uploadImageToServer().execute();
+        }
+    }
+
+    public static String getPath(Context context, Uri uri) {
+        String result = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            result = cursor.getString(column_index);
+        }
+        cursor.close();
+        if (result == null) {
+            result = "Not found";
+        }
+        return result;
     }
 
     @Override
@@ -114,8 +118,7 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
         holder.textName.setText(comment.getText());
         holder.textGrade.setText("Grade: " + String.valueOf(comment.getGrade()));
         holder.textUsername.setText(comment.getCommenter().getUserName());
-        if (!comment.getCommenter().getId().equals(getCommenterId()))
-        {
+        if (!comment.getCommenter().getId().equals(getCommenterId())) {
             holder.btnEdit.setVisibility(View.INVISIBLE);
             holder.btnDelete.setVisibility(View.INVISIBLE);
             holder.btnUpload.setVisibility(View.INVISIBLE);
@@ -156,9 +159,9 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
 
                         Log.e("Comment id", String.valueOf(comment.getid()));
                         Snackbar.make(parent, "Comment has been updated", Snackbar.LENGTH_SHORT).show();
-                                                                                            //params 0 1 and 2
-                        new JSONTaskEdit().execute("http://52.211.99.140/api/v1/comments/" + comment.getid(), access_token, input.getText().toString(), String.valueOf((int)ratingBar.getRating()));
-                        ((Activity)context).finish();
+                        //params 0 1 and 2
+                        new JSONTaskEdit().execute("http://52.211.99.140/api/v1/comments/" + comment.getid(), access_token, input.getText().toString(), String.valueOf((int) ratingBar.getRating()));
+                        ((Activity) context).finish();
                         getContext().startActivity(new Intent(getContext(), CommentActivity.class));
                     }
                 });
@@ -176,7 +179,7 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
             @Override
             public void onClick(View v) {
                 new JSONTaskDelete().execute("http://52.211.99.140/api/v1/comments/" + String.valueOf(comment.getid()), access_token);
-                ((Activity)context).finish();
+                ((Activity) context).finish();
                 getContext().startActivity(new Intent(getContext(), CommentActivity.class));
             }
         });
@@ -194,34 +197,15 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
     }
 
     private void clickpic() {
-        Intent intent = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         // start the image capture Intent
-        ((Activity)context).startActivityForResult(intent, 100);
+        ((Activity) context).startActivityForResult(intent, 100);
     }
 
-    public static void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.e("onActivityResult", "Result code: " + requestCode);
-        if (requestCode == 100 && resultCode == RESULT_OK) {
-
-            selectedImage = data.getData();
-            Log.e("IMAGE PATH", getPath(context, data.getData()));
-            new uploadImageToServer().execute();
-        }
-    }
-
-    public static String getPath( Context context, Uri uri ) {
-        String result = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = context.getContentResolver( ).query( uri, proj, null, null, null );
-        if ( cursor.moveToFirst( ) ) {
-            int column_index = cursor.getColumnIndexOrThrow( MediaStore.Images.Media.DATA );
-            result = cursor.getString( column_index );
-        }
-        cursor.close( );
-        if(result == null) {
-            result = "Not found";
-        }
-        return result;
+    private String getCommenterId() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String iduser = prefs.getString("USERID", "no id");
+        return iduser;
     }
 
     private static class uploadImageToServer extends AsyncTask<Void, Void, String> {
@@ -277,7 +261,7 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
                 }
                 Bitmap bm = BitmapFactory.decodeStream(fis);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bm.compress(Bitmap.CompressFormat.JPEG, 100 , baos);
+                bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 byte[] b = baos.toByteArray();
                 Log.e("Image size", String.valueOf(b.length));
 
@@ -314,7 +298,7 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }  finally {
+            } finally {
                 if (httpURLConnection != null)
                     httpURLConnection.disconnect();
             }
@@ -323,19 +307,12 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
 
         protected void onPostExecute(String error) {
             if (error != null) {
-                Snackbar.make(((Activity)context).findViewById(R.id.relativeLayout2), error, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(((Activity) context).findViewById(R.id.relativeLayout2), error, Snackbar.LENGTH_SHORT).show();
             } else {
-                Snackbar.make(((Activity)context).findViewById(R.id.relativeLayout2), "Picture was uploaded successfuly", Snackbar.LENGTH_SHORT).show();
-                ((Activity)context).finish();
+                Snackbar.make(((Activity) context).findViewById(R.id.relativeLayout2), "Picture was uploaded successfuly", Snackbar.LENGTH_SHORT).show();
+                ((Activity) context).finish();
             }
         }
-    }
-
-    private String getCommenterId()
-    {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String iduser = prefs.getString("USERID", "no id");
-        return iduser;
     }
 
     private static class UserHolder {
@@ -404,8 +381,7 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
             /*
             catch (JSONException e) {
                 e.printStackTrace();
-            }*/
-            finally {
+            }*/ finally {
                 if (httpURLConnection != null)
                     httpURLConnection.disconnect();
             }
@@ -470,12 +446,9 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
                 if (HttpResult == HttpURLConnection.HTTP_CREATED) {
                     System.out.println("created");
 
-                }
-                else if (HttpResult == HttpURLConnection.HTTP_ACCEPTED)
-                {
+                } else if (HttpResult == HttpURLConnection.HTTP_ACCEPTED) {
                     System.out.println("Accepted");
-                }
-                else {
+                } else {
                     /*BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream(), "utf-8"));
                     String line = null;
 
@@ -498,11 +471,9 @@ public class UserCustomAdapter extends ArrayAdapter<CommentModel> {
             } catch (IOException e) {
 
                 e.printStackTrace();
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 if (httpURLConnection != null)
                     httpURLConnection.disconnect();
             }

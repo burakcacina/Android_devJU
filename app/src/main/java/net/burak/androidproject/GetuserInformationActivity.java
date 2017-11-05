@@ -9,7 +9,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,6 +43,7 @@ public class GetuserInformationActivity extends AppCompatActivity {
 
 
     }
+
     public class JSONTask extends AsyncTask<String, String, JSONTask.Response> {
 
         @Override
@@ -70,22 +70,22 @@ public class GetuserInformationActivity extends AppCompatActivity {
                 httpURLConnection.connect();
 
 
-                    BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), "utf-8"));
-                    String line = null;
+                BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), "utf-8"));
+                String line = null;
 
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line + "\n");
-                    }
+                while ((line = br.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
 
-                    br.close();
-                    JSONObject myJson = new JSONObject(sb.toString());
-                    r.response_id = myJson.optString("id");
-                    r.response_username = myJson.optString("userName");
-                    r.response_latitude = myJson.optDouble("latitude");
-                    r.response_longitude = myJson.optDouble("longitude");
-                    System.out.println(r.response_latitude);
-                    System.out.println(sb.toString());
-                    return r;
+                br.close();
+                JSONObject myJson = new JSONObject(sb.toString());
+                r.response_id = myJson.optString("id");
+                r.response_username = myJson.optString("userName");
+                r.response_latitude = myJson.optDouble("latitude");
+                r.response_longitude = myJson.optDouble("longitude");
+                System.out.println(r.response_latitude);
+                System.out.println(sb.toString());
+                return r;
 
 
             } catch (MalformedURLException e) {
@@ -99,14 +99,6 @@ public class GetuserInformationActivity extends AppCompatActivity {
                     httpURLConnection.disconnect();
             }
             return null;
-        }
-
-        public class Response {
-            public String response_username;
-            public String response_id;
-            public double response_longitude;
-            public double response_latitude;
-
         }
 
         protected void onPostExecute(final Response r) {
@@ -124,6 +116,14 @@ public class GetuserInformationActivity extends AppCompatActivity {
                 tvlongitude.setText("Longitude: " + String.valueOf(r.response_longitude));
 
             }
+        }
+
+        public class Response {
+            public String response_username;
+            public String response_id;
+            public double response_longitude;
+            public double response_latitude;
+
         }
     }
 }

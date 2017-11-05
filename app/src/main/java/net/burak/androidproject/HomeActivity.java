@@ -7,42 +7,18 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.google.gson.Gson;
+import android.view.*;
+import android.widget.*;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
+import net.burak.androidproject.helpers.RecipesHelper;
 import net.burak.androidproject.models.RecipeModel;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /* This is Created
         by
@@ -51,8 +27,10 @@ import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private ListView lvRecipes;
+    private AbsListView lvRecipes;
     private ProgressDialog dialog;
+    private AtomicInteger pageNum = new AtomicInteger(1);
+    private RecipesHelper recipesHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +42,8 @@ public class HomeActivity extends AppCompatActivity {
         dialog.setCancelable(false);
         dialog.setMessage("Loading. Please wait...");
 
+        this.recipesHelper = new RecipesHelper(this);
+
         DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
                 .cacheInMemory(true)
                 .cacheOnDisk(true)
@@ -73,44 +53,28 @@ public class HomeActivity extends AppCompatActivity {
                 .build();
         ImageLoader.getInstance().init(config); // Do it on Application start
 
-        lvRecipes = (ListView)findViewById(R.id.lvRecipes);
+        lvRecipes = (AbsListView) findViewById(R.id.lvRecipes);
 
-        Button but1 = (Button) findViewById(R.id.pagenext);
-        Button but2 = (Button) findViewById(R.id.pageprev);
+        Button nextPageBtn = (Button) findViewById(R.id.pagenext);
+        Button prevPageBtn = (Button) findViewById(R.id.pageprev);
         Button but3 = (Button) findViewById(R.id.createRecipe);
 
-        String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=1";
-        new JSONTask().execute(URL_TO_HIT);
+        new GetRecipeByPageTask().execute("" + pageNum.get());
 
-
-        final int[] counter = {1};
-        but1.setOnClickListener(new View.OnClickListener() {
-
+        nextPageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                {
-                    counter[0] +=1;
-                    String pagenunmber = Integer.toString(counter[0]);
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
-                    new JSONTask().execute(URL_TO_HIT);
-                }
+                new GetRecipeByPageTask().execute("" + pageNum.incrementAndGet());
             }
         });
 
-        but2.setOnClickListener(new View.OnClickListener() {
-
+        prevPageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                {
-                    if (counter[0] != 1 ) {
-                        counter[0] -= 1;
-                        String pagenunmber = Integer.toString(counter[0]);
-                        String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenunmber;
-                        new JSONTask().execute(URL_TO_HIT);
-                    }
-                    else{
-                        Toast.makeText(getApplicationContext(), "This is Final Page", Toast.LENGTH_SHORT).show();
-                    }
+                if (pageNum.get() > 1) {
+                    new GetRecipeByPageTask().execute("" + pageNum.decrementAndGet());
+                } else {
+                    Toast.makeText(getApplicationContext(), "This is the first page", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -126,8 +90,36 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    public class JSONTask extends AsyncTask<String,String, List<RecipeModel> > {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_home, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == R.id.action_search) {
+            Intent intentUpdate = new Intent(getApplicationContext(), SearchActivity.class);
+            startActivity(intentUpdate);
+        } else if (item.getItemId() == R.id.action_showuser) {
+            Intent intentUpdate = new Intent(getApplicationContext(), GetuserInformationActivity.class);
+            startActivity(intentUpdate);
+        } else if (item.getItemId() == R.id.action_update) {
+            Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
+            startActivity(intentUpdate);
+        } else if (item.getItemId() == R.id.action_exit) {
+            this.finishAffinity();
+        } else if (item.getItemId() == R.id.action_created) {
+            Intent intentUpdatea = new Intent(getApplicationContext(), UsersRecipeAndComments.class);
+            startActivity(intentUpdatea);
+        }
+
+        return true;
+    }
+
+    public class GetRecipeByPageTask extends AsyncTask<String, String, List<RecipeModel>> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -136,55 +128,14 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         protected List<RecipeModel> doInBackground(String... params) {
-            StringBuilder sb = new StringBuilder();
-            HttpURLConnection httpURLConnection = null;
-            try {
-                URL url = new URL(params[0]);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestProperty("Accept", "application/json");
-                httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestMethod("GET");
-                httpURLConnection.connect();
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), "utf-8"));
-                String line = null;
-
-                while ((line = br.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-
-                br.close();
-
-                List<RecipeModel> RecipeModelList = new ArrayList<>();
-
-                JSONArray parentArray = new JSONArray(sb.toString());
-                Gson gson = new Gson();
-                for(int i=0; i<parentArray.length(); i++) {
-                    JSONObject finalObject = parentArray.getJSONObject(i);
-                    RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
-                    RecipeModelList.add(recipeModel);
-                }
-
-                return RecipeModelList;
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
-                if (httpURLConnection != null)
-                    httpURLConnection.disconnect();
-            }
-            return  null;
+            return recipesHelper.getRecipes(Integer.parseInt(params[0]));
         }
 
         @Override
         protected void onPostExecute(final List<RecipeModel> result) {
             super.onPostExecute(result);
             dialog.dismiss();
-            if(result != null) {
+            if (result != null) {
                 RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_showrecipe, result);
                 lvRecipes.setAdapter(adapter);
                 lvRecipes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -192,24 +143,25 @@ public class HomeActivity extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         RecipeModel recipeModel = result.get(position);
                         Intent intent = new Intent(HomeActivity.this, DetailActivity.class);
-                        intent.putExtra("recipeModel", new Gson().toJson(recipeModel));
+                        intent.putExtra(AppConstants.RECIPE_ID, "" + recipeModel.getId());
                         startActivity(intent);
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(), "Not able to fetch data from server, no internet connection found.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Not able to fetch data from server, no internet connection found.", Toast.LENGTH_LONG).show();
             }
         }
     }
 
     public class RecipeAdapter extends ArrayAdapter {
 
-        private List<RecipeModel> RecipeModelList;
+        private List<RecipeModel> recipes;
         private int resource;
         private LayoutInflater inflater;
+
         public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
             super(context, resource, objects);
-            RecipeModelList = objects;
+            recipes = objects;
             this.resource = resource;
             inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         }
@@ -217,24 +169,26 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
+            RecipeModel currRecipe = recipes.get(position);
+
             ViewHolder holder = null;
 
-            if(convertView == null){
+            if (convertView == null) {
                 holder = new ViewHolder();
                 convertView = inflater.inflate(resource, null);
-                holder.ivRecipeIcon = (ImageView)convertView.findViewById(R.id.ivIcon);
-                holder.tvRecipeName = (TextView)convertView.findViewById(R.id.tvRecipeName);
-                holder.tvRecipeID = (TextView)convertView.findViewById(R.id.tvRecipeID);
-                holder.tvCreated = (TextView)convertView.findViewById(R.id.tvCreated);
+                holder.ivRecipeIcon = (ImageView) convertView.findViewById(R.id.ivIcon);
+                holder.tvRecipeName = (TextView) convertView.findViewById(R.id.tvRecipeName);
+                holder.tvRecipeID = (TextView) convertView.findViewById(R.id.tvRecipeID);
+                holder.tvCreated = (TextView) convertView.findViewById(R.id.tvCreated);
 
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
-            final ProgressBar progressBar = (ProgressBar)convertView.findViewById(R.id.progressBar);
+            final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.progressBar);
 
-            ImageLoader.getInstance().displayImage(RecipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
+            ImageLoader.getInstance().displayImage(recipes.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
                 @Override
                 public void onLoadingStarted(String imageUri, View view) {
                     progressBar.setVisibility(View.VISIBLE);
@@ -256,63 +210,21 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
 
-            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline());
-            holder.tvRecipeID.setText("ID: " + RecipeModelList.get(position).getid());
-            holder.tvCreated.setText("Created: " + RecipeModelList.get(position).getCreated());
+            holder.tvRecipeName.setText(currRecipe.getName());
+            holder.tvRecipeID.setText("ID: " + currRecipe.getId());
+            holder.tvCreated.setText("Created: " + currRecipe.getCreated());
             return convertView;
         }
 
 
-        class ViewHolder{
+        class ViewHolder {
             private ImageView ivRecipeIcon;
             private TextView tvRecipeName;
             private TextView tvRecipeID;
             private TextView tvCreated;
 
         }
-
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_home, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == R.id.action_search) {
-            Intent intentUpdate = new Intent(getApplicationContext(), SearchActivity.class);
-            startActivity(intentUpdate);
-        }
-        else if(item.getItemId() == R.id.action_showuser) {
-                Intent intentUpdate = new Intent(getApplicationContext(),GetuserInformationActivity.class);
-                startActivity(intentUpdate);
-        }
-        else if(item.getItemId() == R.id.action_update) {
-                Intent intentUpdate = new Intent(getApplicationContext(), UpdateAccActivity.class);
-                startActivity(intentUpdate);
-        }
-        else if (item.getItemId() == R.id.action_exit) {
-                this.finishAffinity();
-        }
-        else if (item.getItemId() == R.id.action_created) {
-            Intent intentUpdatea = new Intent(getApplicationContext(), UsersRecipeAndComments.class);
-            startActivity(intentUpdatea);
-        }
-
-        return true;
-    }
-
-
-
-
-
-
-
-
 
 
 }

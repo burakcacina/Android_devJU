@@ -1,85 +1,24 @@
 package net.burak.androidproject.models;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class RecipeModel {
-    private int id;
-    private String recipe;
-    private String description;
-    private int created;
-    private String userid;
+    private Integer id;
     private String name;
+    private String description;
+
+    private CreatorModel creator;
+
     private String image;
-    private String username;
-    private List<directions> directionsList;
+    private Long created;
 
-    public String getImage() {
-        return image;
-    }
-    public void setImage(String image) {
-        this.image = image;
-    }
+    private List<DirectionsModel> directions;
 
-    public int getid() {
-        return id;
-    }
-    public void setId(int id) {
-        this.id = id;
-    }
+    private transient boolean fav = false;
+    private transient Integer pageNumber = null;
 
-    public String getName() {
-        return recipe;
-    }
-    public void setName(String name) {
-        this.recipe = name;
-    }
-
-    public int getCreated() { return created; }
-    public void setCreated(int created) { this.created = created; }
-
-    public String getUserid() {
-        return userid;
-    }
-    public void setUserid(String userid) {
-        this.userid = userid;
-    }
-
-    public String getUserName() {
-        return username;
-    }
-    public void setUserName(String username) {
-        this.username = username;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getTagline() {
-        return name;
-    }
-    public void setTagline(String name) {
-        this.name = name;
-    }
-
-    public List<directions> getdirectionsList() {
-        return directionsList;
-    }
-
-    public void setdirectionsList(List<directions> directionsList) { this.directionsList = directionsList; }
-
-    public static class directions {
-        private String description;
-        private int order;
-
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-
-        public int getOrder() { return order; }
-        public void setOrder(int order) { this.order = order; }
-    }
 }
 

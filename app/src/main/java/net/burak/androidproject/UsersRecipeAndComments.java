@@ -12,22 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 import com.google.gson.Gson;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
 import net.burak.androidproject.models.RecipeModel;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,17 +31,22 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.burak.androidproject.AppConstants.PREFS;
+
 public class UsersRecipeAndComments extends AppCompatActivity {
 
     private ListView lvRecipes;
+    private String userId, accessToken;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_usercreated);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UsersRecipeAndComments.this);
-        final String iduser = prefs.getString("USERID", "no id");
+        this.sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this.userId = this.sharedPreferences.getString(AppConstants.PREF_USER_ID, null);
+        this.accessToken = this.sharedPreferences.getString(AppConstants.PREF_ACCESS_TOKEN, null);
 
         lvRecipes = (ListView) findViewById(R.id.lvRecipes);
         Button but1 = (Button) findViewById(R.id.userRecipesbutton);
@@ -60,7 +55,7 @@ public class UsersRecipeAndComments extends AppCompatActivity {
         but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
-                    final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/" + iduser + "/recipes";
+                    final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/" + userId + "/recipes";
                     new JSONTask().execute(URL_TO_HIT);
                 }
             }
@@ -69,18 +64,19 @@ public class UsersRecipeAndComments extends AppCompatActivity {
         but2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
-                    final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/" + iduser + "/comments";
+                    final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/" + userId + "/comments";
                     new JSONTask().execute(URL_TO_HIT);
                 }
             }
         });
-
-
     }
+
     public class JSONTask extends AsyncTask<String, String, List<RecipeModel>> {
 
         @Override
-        protected void onPreExecute() { super.onPreExecute(); }
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
 
         @SuppressWarnings("WrongThread")
         @Override
@@ -94,7 +90,7 @@ public class UsersRecipeAndComments extends AppCompatActivity {
             try {
                 URL url = new URL(params[0]);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestProperty("Host", "11.12.21.22");
+                httpURLConnection.setRequestProperty("Host", AppConstants.MJILIK_HOST_ENDPOINT);
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestMethod("GET");
                 httpURLConnection.connect();
@@ -121,14 +117,11 @@ public class UsersRecipeAndComments extends AppCompatActivity {
                     }
 
                     return RecipeModelList;
-                }
-                else
-                {
+                } else {
                     System.out.println("ERROROROR");
 
                 }
-            }
-            catch (MalformedURLException e) {
+            } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -140,24 +133,29 @@ public class UsersRecipeAndComments extends AppCompatActivity {
             }
             return null;
         }
+
         @Override
 
         protected void onPostExecute(final List<RecipeModel> result) {
             super.onPostExecute(result);
-            if(result != null) {
-                RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail_search, result);
-                lvRecipes.setAdapter(adapter);
-                lvRecipes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        RecipeModel recipeModel = result.get(position);
-                        Intent intent = new Intent(UsersRecipeAndComments.this, DetailActivity.class);
-                        intent.putExtra("recipeModel", new Gson().toJson(recipeModel));
-                        startActivity(intent);
-                    }
-                });
-            } else {
-                Toast.makeText(getApplicationContext(), "Write a keyword for search.", Toast.LENGTH_SHORT).show();
+            try {
+                if (result != null) {
+                    RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail_search, result);
+                    lvRecipes.setAdapter(adapter);
+                    lvRecipes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            RecipeModel recipeModel = result.get(position);
+                            Intent intent = new Intent(UsersRecipeAndComments.this, DetailActivity.class);
+                            intent.putExtra("recipeModel", new Gson().toJson(recipeModel));
+                            startActivity(intent);
+                        }
+                    });
+                } else {
+                    Toast.makeText(getApplicationContext(), "Write a keyword for search.", Toast.LENGTH_SHORT).show();
+                }
+            }catch (Exception e){
+                e.printStackTrace();
             }
         }
     }
@@ -183,10 +181,10 @@ public class UsersRecipeAndComments extends AppCompatActivity {
             if (convertView == null) {
                 holder = new ViewHolder();
                 convertView = inflater.inflate(resource, null);
-                holder.ivRecipeIcon = (ImageView)convertView.findViewById(R.id.ivIcon);
-                holder.tvRecipeName = (TextView)convertView.findViewById(R.id.tvRecipeName);
-                holder.tvRecipeID = (TextView)convertView.findViewById(R.id.tvRecipeID);
-                holder.tvDescription = (TextView)convertView.findViewById(R.id.tvDescription);
+                holder.ivRecipeIcon = (ImageView) convertView.findViewById(R.id.ivIcon);
+                holder.tvRecipeName = (TextView) convertView.findViewById(R.id.tvRecipeName);
+                holder.tvRecipeID = (TextView) convertView.findViewById(R.id.tvRecipeID);
+                holder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
 
                 convertView.setTag(holder);
             } else {
@@ -220,8 +218,8 @@ public class UsersRecipeAndComments extends AppCompatActivity {
 
             // Then later, when you want to display image
 
-            holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-            holder.tvRecipeID.setText("ID: " + recipeModelList.get(position).getid());
+            holder.tvRecipeName.setText(recipeModelList.get(position).getName());
+            holder.tvRecipeID.setText("ID: " + recipeModelList.get(position).getId());
             holder.tvDescription.setText(recipeModelList.get(position).getDescription());
 
 

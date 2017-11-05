@@ -1,16 +1,15 @@
 package net.burak.androidproject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,14 +19,18 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static net.burak.androidproject.AppConstants.PREFS;
+
 /* This is Created
         by
       BURAK CACINA
 */
 
 public class UpdateAccActivity extends AppCompatActivity {
-    EditText up_text_Longitude,up_text_Latitude;
-    String access_token,up_latitude,up_longitude,response;
+    private EditText up_text_Longitude, up_text_Latitude;
+    private String up_latitude, up_longitude;
+    private String userId, accessToken;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,32 +40,27 @@ public class UpdateAccActivity extends AppCompatActivity {
         Button but1 = (Button) findViewById(R.id.deleteAccountbutton);
         Button but2 = (Button) findViewById(R.id.uptadeAcc);
 
-        up_text_Latitude = (EditText)findViewById(R.id.up_latitude);
-        up_text_Longitude = (EditText)findViewById(R.id.up_longitude);
+        up_text_Latitude = (EditText) findViewById(R.id.up_latitude);
+        up_text_Longitude = (EditText) findViewById(R.id.up_longitude);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(UpdateAccActivity.this);
-        final String iduser = prefs.getString("USERID", "no id");
-
-        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(UpdateAccActivity.this);
-        final String token = prefs2.getString("access_token", "no id");
-
-        final String URL_TO_HIT = "http://52.211.99.140/api/v1/accounts/"+iduser;
-        access_token =token;
+        this.sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this.userId = this.sharedPreferences.getString(AppConstants.PREF_USER_ID, null);
+        this.accessToken = this.sharedPreferences.getString(AppConstants.PREF_ACCESS_TOKEN, null);
 
         but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent intent = new Intent(UpdateAccActivity.this, DeleteUserActivity.class);
-                startActivity(intent);
+                new DeleteAccTask().execute();
             }
         });
+
         but2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                new UpdateAccActivity.JSONTask().execute(URL_TO_HIT);
+                new UpdateAccInfoTask().execute();
             }
         });
     }
 
-    public class JSONTask extends AsyncTask<String, Void, String> {
+    public class UpdateAccInfoTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected void onPreExecute() {
@@ -74,17 +72,17 @@ public class UpdateAccActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             HttpURLConnection httpURLConnection = null;
             try {
-                URL url = new URL(params[0]);
+                URL url = new URL(AppConstants.MJILIK_ENDPOINT + "/accounts/" + userId);
                 httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
-                httpURLConnection.setRequestProperty("Host", "11.12.21.22");
+                httpURLConnection.setRequestProperty("Host", AppConstants.MJILIK_HOST_ENDPOINT);
                 httpURLConnection.setRequestMethod("PATCH");
                 httpURLConnection.connect();
                 JSONObject jsonParam = new JSONObject();
 
-                up_latitude =up_text_Latitude.getText().toString();
-                up_longitude =up_text_Longitude.getText().toString();
+                up_latitude = up_text_Latitude.getText().toString();
+                up_longitude = up_text_Longitude.getText().toString();
 
                 jsonParam.put("longitude", up_latitude);
                 jsonParam.put("latitude", up_longitude);
@@ -95,8 +93,7 @@ public class UpdateAccActivity extends AppCompatActivity {
 
                 int HttpResult = httpURLConnection.getResponseCode();
                 if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
-                    response = "UPDATED";
-                    return response;
+                    return "Success";
                 }
 
             } catch (MalformedURLException e) {
@@ -112,14 +109,65 @@ public class UpdateAccActivity extends AppCompatActivity {
             }
             return null;
         }
+
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if(response != null)
-            {
+            if (result != null) {
                 Intent intent = new Intent(UpdateAccActivity.this, HomeActivity.class);
                 Toast.makeText(getApplicationContext(), "Updated Succesfully", Toast.LENGTH_LONG).show();
                 startActivity(intent);
+            } else {
+                Toast.makeText(getApplicationContext(), "Failed Update", Toast.LENGTH_LONG).show();
             }
         }
     }
+
+    public class DeleteAccTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @SuppressWarnings("WrongThread")
+        @Override
+        protected String doInBackground(String... params) {
+            HttpURLConnection httpURLConnection = null;
+            try {
+                URL url = new URL(AppConstants.MJILIK_ENDPOINT + "/accounts/" + userId);
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
+                httpURLConnection.setRequestProperty("Host", AppConstants.MJILIK_HOST_ENDPOINT);
+                httpURLConnection.setRequestMethod("DELETE");
+                httpURLConnection.connect();
+
+                int HttpResult = httpURLConnection.getResponseCode();
+                System.out.println(HttpResult);
+                if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
+                    return "DELETED";
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (httpURLConnection != null)
+                    httpURLConnection.disconnect();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            if (result != null) {
+                Intent intent = new Intent(UpdateAccActivity.this, MainActivity.class);
+                Toast.makeText(getApplicationContext(), "Deleted Succesfully", Toast.LENGTH_LONG).show();
+                startActivity(intent);
+            } else {
+                Toast.makeText(getApplicationContext(), "Failed Delete", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
 }

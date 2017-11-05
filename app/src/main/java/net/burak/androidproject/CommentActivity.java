@@ -1,8 +1,6 @@
 package net.burak.androidproject;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,43 +18,24 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RatingBar;
-import android.widget.Toast;
-
+import android.widget.*;
 import com.google.gson.Gson;
-
 import net.burak.androidproject.adapters.UserCustomAdapter;
 import net.burak.androidproject.models.CommentModel;
-
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import static net.burak.androidproject.AppConstants.PREFS;
 
 /**
  * Created by Cube on 2/5/2017.
@@ -64,21 +43,21 @@ import java.util.List;
 
 public class CommentActivity extends AppCompatActivity {
 
-    EditText commentBox;
-    private String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes";
-    private String access_token, USERID, commmet_text, recipe_id, error;
     private static final int RESULT_LOAD_IMAGE = 1;
+    public static String URL = "Paste your URL here";
     //Uri selectedImage = null;
     final private int MY_PERMISSIONS_REQUEST_READ_STORAGE = 123;
-
+    private EditText commentBox;
     //testing data
-    Button btpic, btnup;
+    private Button btpic, btnup;
+    private String picturePath;
+    private Uri selectedImage;
+    private Bitmap photo;
+    private String ba1;
+    private String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes";
+    private String accessToken, userId, commmet_text, recipe_id, error;
     private Uri fileUri;
-    String picturePath;
-    Uri selectedImage;
-    Bitmap photo;
-    String ba1;
-    public static String URL = "Paste your URL here";
+    private SharedPreferences sharedPreferences;
     // testing data
 
     @Override
@@ -115,21 +94,19 @@ public class CommentActivity extends AppCompatActivity {
         }
 
         //Needed for Specification
-        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);
-        String token = prefs2.getString("access_token", "no id");
-        access_token = token;
-
-        //Need for Creator ID while creating recipe
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String iduser = prefs.getString("USERID", "no id");
-        USERID = iduser;
+        this.sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this.userId = this.sharedPreferences.getString(AppConstants.PREF_USER_ID, null);
+        this.accessToken = this.sharedPreferences.getString(AppConstants.PREF_ACCESS_TOKEN, null);
 
         commentBox = (EditText) findViewById(R.id.commentText);
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        int recipieId = sharedPreferences.getInt("RECIPEID", 0);
+        Bundle bundle = getIntent().getExtras();
+        Long recipeID = null;
+        if (bundle != null) {
+            recipeID = bundle.getLong(AppConstants.RECIPE_ID);
+        }
 
-        URL_TO_HIT += "/" + String.valueOf(recipieId) + "/comments";
+        URL_TO_HIT += "/" + String.valueOf(recipeID) + "/comments";
 
         Button button = (Button) findViewById(R.id.postButton1);
         button.setOnClickListener(new View.OnClickListener() {
@@ -141,7 +118,7 @@ public class CommentActivity extends AppCompatActivity {
             }
         });
 
-        new JSONTask2().execute("http://52.211.99.140/api/v1/recipes/" + recipieId + "/comments");
+        new JSONTask2().execute("http://52.211.99.140/api/v1/recipes/" + recipeID + "/comments");
 
 
     }
@@ -221,7 +198,6 @@ public class CommentActivity extends AppCompatActivity {
     }*/
 
 
-
     public class JSONTask extends AsyncTask<String, Void, String> {
 
         @Override
@@ -246,21 +222,21 @@ public class CommentActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.connect();
                 JSONObject jsonParam = new JSONObject();
 
                 commmet_text = commentBox.getText().toString();
 
-                jsonParam.put("commenterId", USERID);
+                jsonParam.put("commenterId", userId);
                 jsonParam.put("text", commmet_text);
-                jsonParam.put("grade", (int)((RatingBar)findViewById(R.id.ratingBar)).getRating());
+                jsonParam.put("grade", (int) ((RatingBar) findViewById(R.id.ratingBar)).getRating());
 
                 //jsonParam.put("recipe_id", recipe_id);
 
-                /*System.out.println(access_token);
-                System.out.println(USERID);
+                /*System.out.println(accessToken);
+                System.out.println(userId);
                 System.out.println(commmet_text);
                 System.out.println(URL_TO_HIT);*/
 
@@ -312,6 +288,7 @@ public class CommentActivity extends AppCompatActivity {
             }
         }
     }
+
     public class JSONTask2 extends AsyncTask<String, String, List<CommentModel>> {
 
         @Override
@@ -345,9 +322,8 @@ public class CommentActivity extends AppCompatActivity {
                 Gson gson = new Gson();
                 JSONArray jsonArray = new JSONArray(sb.toString());
 
-                if(httpURLConnection.getResponseCode() == 200) {
-                    for (int counter = 0; counter < jsonArray.length(); counter++)
-                    {
+                if (httpURLConnection.getResponseCode() == 200) {
+                    for (int counter = 0; counter < jsonArray.length(); counter++) {
                         commentModelList.add(gson.fromJson(jsonArray.get(counter).toString(), CommentModel.class));
                     }
                 }
@@ -371,20 +347,18 @@ public class CommentActivity extends AppCompatActivity {
             super.onPostExecute(result);
             // Generating list
             ArrayList<String> comments = new ArrayList<>();
-            for (CommentModel one : result)
-            {
+            for (CommentModel one : result) {
                 comments.add(one.getText());
                 Log.e("Comment ids", String.valueOf(one.getid()));
             }
 
             ArrayList<CommentModel> test = new ArrayList<CommentModel>();
-            for (CommentModel one : result)
-            {
+            for (CommentModel one : result) {
                 test.add(one);
             }
 
-            UserCustomAdapter userAdapter = new UserCustomAdapter(CommentActivity.this, R.layout.test_layout_adapter, test, access_token);
-            ListView lView = (ListView)findViewById(R.id.commentsListView);
+            UserCustomAdapter userAdapter = new UserCustomAdapter(CommentActivity.this, R.layout.test_layout_adapter, test, accessToken);
+            ListView lView = (ListView) findViewById(R.id.commentsListView);
             lView.setItemsCanFocus(false);
             lView.setAdapter(userAdapter);
             /**
@@ -402,14 +376,14 @@ public class CommentActivity extends AppCompatActivity {
                 }
             });*/
         }
-        public String getPath(Uri uri)
-        {
-            String[] projection = { MediaStore.Images.Media.DATA };
+
+        public String getPath(Uri uri) {
+            String[] projection = {MediaStore.Images.Media.DATA};
             Cursor cursor = managedQuery(uri, projection, null, null, null);
             if (cursor == null) return null;
-            int column_index =             cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToFirst();
-            String s=cursor.getString(column_index);
+            String s = cursor.getString(column_index);
             cursor.close();
             return s;
         }
@@ -430,13 +404,13 @@ public class CommentActivity extends AppCompatActivity {
                     URL url = new URL(params[0]);
                     httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=SOME_BOUNDARY");
                     httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                    httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                    httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
                     httpURLConnection.setRequestMethod("PUT");
                     httpURLConnection.connect();
 
                     JSONObject jsonParam = new JSONObject();
 
-                    jsonParam.put("commenterId", USERID);
+                    jsonParam.put("commenterId", userId);
                     jsonParam.put("text", commmet_text);
                     jsonParam.put("grade", 3);
 
@@ -505,7 +479,7 @@ public class CommentActivity extends AppCompatActivity {
                     test.add(one);
                 }
 
-                UserCustomAdapter userAdapter = new UserCustomAdapter(CommentActivity.this, R.layout.test_layout_adapter, test, access_token);
+                UserCustomAdapter userAdapter = new UserCustomAdapter(CommentActivity.this, R.layout.test_layout_adapter, test, accessToken);
                 ListView lView = (ListView) findViewById(R.id.commentsListView);
                 lView.setItemsCanFocus(false);
                 lView.setAdapter(userAdapter);

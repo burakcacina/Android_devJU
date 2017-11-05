@@ -15,7 +15,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="net.burak.androidproject.MainActivity"
-            android:label="Welcome Mjilk Recipe">
+            android:label="Mjilk Recipe">
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,9 +40,6 @@
             android:name="net.burak.androidproject.DetailActivity"
             android:label="Showing Recipe" />
         <activity
-            android:name="net.burak.androidproject.DeleteRecipeActivity"
-            android:label="Delete Recipe" />
-        <activity
             android:name="net.burak.androidproject.CreateRecipeActivity"
             android:label="CreateRecipe" />
         <activity
@@ -63,9 +60,6 @@
         <activity
             android:name="net.burak.androidproject.GetuserInformationActivity"
             android:label="User Information" />
-        <activity
-            android:name="net.burak.androidproject.DeleteUserActivity"
-            android:label="Delete User" />
         <activity
             android:name="net.burak.androidproject.CommentActivity"
             android:label="Comments" />

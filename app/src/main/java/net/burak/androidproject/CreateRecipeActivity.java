@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,23 +31,24 @@ import java.net.URL;
 public class CreateRecipeActivity extends AppCompatActivity {
 
     private final String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes";
-    EditText ET_RECIPENAME,ET_DESCRIPTION,ET_DIRECTION,ET_DIRECTION_2;
-    String access_token,USERID,recipe_name,recipe_directions,recipe_descriptions,recipe_directions2,error;
+    EditText ET_RECIPENAME, ET_DESCRIPTION, ET_DIRECTION, ET_DIRECTION_2;
+    String access_token, USERID, recipe_name, recipe_directions, recipe_descriptions, recipe_directions2, error;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_recipe);
 
         Button but1 = (Button) findViewById(R.id.Createbutton);
-        ET_RECIPENAME= (EditText)findViewById(R.id.recipe_name);
-        ET_DESCRIPTION = (EditText)findViewById(R.id.recipe_description);
-        ET_DIRECTION = (EditText)findViewById(R.id.recipe_directions);
-        ET_DIRECTION_2 = (EditText)findViewById(R.id.recipe_directions2);
+        ET_RECIPENAME = (EditText) findViewById(R.id.recipe_name);
+        ET_DESCRIPTION = (EditText) findViewById(R.id.recipe_description);
+        ET_DIRECTION = (EditText) findViewById(R.id.recipe_directions);
+        ET_DIRECTION_2 = (EditText) findViewById(R.id.recipe_directions2);
 
         //Needed for Specification
         SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);
         String token = prefs2.getString("access_token", "no id");
-        access_token =token;
+        access_token = token;
 
         //Need for Creator ID while creating recipe
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -93,29 +93,29 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 httpURLConnection.connect();
                 JSONObject jsonParam = new JSONObject();
 
-                recipe_name =ET_RECIPENAME.getText().toString();
-                recipe_descriptions =ET_DESCRIPTION.getText().toString();
+                recipe_name = ET_RECIPENAME.getText().toString();
+                recipe_descriptions = ET_DESCRIPTION.getText().toString();
                 recipe_directions = ET_DIRECTION.getText().toString();
-                recipe_directions2  =ET_DIRECTION_2.getText().toString();
+                recipe_directions2 = ET_DIRECTION_2.getText().toString();
 
                 JSONArray arrForB = new JSONArray();
-                for(int l=1; l<3; l++) {
+                for (int l = 1; l < 3; l++) {
                     if (l == 1) {
                         JSONObject itemB = new JSONObject();
                         itemB.put("order", l);
                         itemB.put("description", recipe_directions);
                         arrForB.put(itemB);
                     }
-                    if(l == 2) {
+                    if (l == 2) {
                         JSONObject itemB = new JSONObject();
                         itemB.put("order", l);
                         itemB.put("description", recipe_directions2);
                         arrForB.put(itemB);
                     }
                 }
-                jsonParam.put("name",recipe_name);
+                jsonParam.put("name", recipe_name);
                 jsonParam.put("description", recipe_descriptions);
-                jsonParam.put("creatorId",USERID);
+                jsonParam.put("creatorId", USERID);
                 jsonParam.put("directions", arrForB);
 
                 OutputStreamWriter out = new OutputStreamWriter(httpURLConnection.getOutputStream());
@@ -126,8 +126,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 if (HttpResult == HttpURLConnection.HTTP_CREATED) {
                     System.out.println("created");
 
-                }
-                else {
+                } else {
                     BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream(), "utf-8"));
                     String line = null;
 
@@ -162,8 +161,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         protected void onPostExecute(String error) {
             if (error != null) {
                 Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 Intent intent = new Intent(CreateRecipeActivity.this, HomeActivity.class);
                 Toast.makeText(getApplicationContext(), "Recipe CREATED", Toast.LENGTH_LONG).show();
                 startActivity(intent);

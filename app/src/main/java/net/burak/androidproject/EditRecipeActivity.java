@@ -1,6 +1,5 @@
 package net.burak.androidproject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,34 +10,23 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import static net.burak.androidproject.AppConstants.PREFS;
 
 /* This is Created
         by
@@ -46,36 +34,59 @@ import java.net.URL;
 */
 
 public class EditRecipeActivity extends AppCompatActivity {
-    EditText ET_RECIPENAME,ET_DESCRIPTION,ET_DIRECTION,ET_DIRECTION_2;
-    String access_token,USERID,recipe_name,recipe_directions,recipe_descriptions,recipe_directions2,URL,error;
-    Uri selectedImage;
-    int l=1;
+    private EditText ET_RECIPENAME, ET_DESCRIPTION, ET_DIRECTION, ET_DIRECTION_2;
+
+    private String accessToken, userId, recipe_name, recipe_directions, recipe_descriptions, recipe_directions2, URL, error;
+
+    private Long recipeID;
+
+    private Uri selectedImage;
+
+    private SharedPreferences sharedPreferences;
+
+    public static String getPath(Context context, Uri uri) {
+        String result = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            result = cursor.getString(column_index);
+        }
+        cursor.close();
+        if (result == null) {
+            result = "Not found";
+        }
+        return result;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_recipe);
 
         Button but1 = (Button) findViewById(R.id.edit_recipe_button);
-        ET_RECIPENAME= (EditText)findViewById(R.id.edit_recipe_name);
-        ET_DESCRIPTION = (EditText)findViewById(R.id.edit_recipe_description);
-        ET_DIRECTION = (EditText)findViewById(R.id.edit_recipe_directions);
-        ET_DIRECTION_2 = (EditText)findViewById(R.id.edit_recipe_directions2);
+        ET_RECIPENAME = (EditText) findViewById(R.id.edit_recipe_name);
+        ET_DESCRIPTION = (EditText) findViewById(R.id.edit_recipe_description);
+        ET_DIRECTION = (EditText) findViewById(R.id.edit_recipe_directions);
+        ET_DIRECTION_2 = (EditText) findViewById(R.id.edit_recipe_directions2);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        int data = prefs.getInt("RECIPEID", 1); //no id: default value
+        this.sharedPreferences = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this.userId = this.sharedPreferences.getString(AppConstants.PREF_USER_ID, null);
+        this.accessToken = this.sharedPreferences.getString(AppConstants.PREF_ACCESS_TOKEN, null);
 
-        SharedPreferences prefs2 = PreferenceManager.getDefaultSharedPreferences(this);
-        String token = prefs2.getString("access_token", "no id"); //no id: default value
-        access_token = token;
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            recipeID = bundle.getLong(AppConstants.RECIPE_ID);
+        }
 
-        final String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes/" + data;
+        final String URL_TO_HIT = AppConstants.MJILIK_ENDPOINT+"/recipes/" + recipeID;
 
         but1.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new JSONTask().execute(URL_TO_HIT);
             }
         });
-        ((Button)findViewById(R.id.upload_photo_button)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.upload_photo_button)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO
@@ -85,12 +96,12 @@ public class EditRecipeActivity extends AppCompatActivity {
     }
 
     private void clickpic() {
-        Intent intent = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         // start the image capture Intent
         startActivityForResult(intent, 100);
     }
 
-    public  void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         Log.e("onActivityResult", "Result code: " + requestCode);
         if (requestCode == 100 && resultCode == RESULT_OK) {
 
@@ -98,34 +109,12 @@ public class EditRecipeActivity extends AppCompatActivity {
 
             Log.e("IMAGE PATH", getPath(getApplicationContext(), intent.getData()));
 
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            int data = prefs.getInt("RECIPEID", 1); //no id: default value
-            if (data == 1)
-            {
-                Log.e("EditRecipeActivity", "bad id");
-            }
-
             //test();
-            new uploadImageToServer().execute("http://52.211.99.140/api/v1/recipes/" + data + "/image");
+            new UploadImageToServer().execute(AppConstants.MJILIK_ENDPOINT+"/recipes/" + recipeID + "/image");
         }
     }
 
-    public static String getPath(Context context, Uri uri ) {
-        String result = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = context.getContentResolver( ).query( uri, proj, null, null, null );
-        if ( cursor.moveToFirst( ) ) {
-            int column_index = cursor.getColumnIndexOrThrow( MediaStore.Images.Media.DATA );
-            result = cursor.getString( column_index );
-        }
-        cursor.close( );
-        if(result == null) {
-            result = "Not found";
-        }
-        return result;
-    }
-
-    private class uploadImageToServer extends AsyncTask<String, Void, String> {
+    private class UploadImageToServer extends AsyncTask<String, Void, String> {
         protected void onPreExecute() {
             super.onPreExecute();
         }
@@ -151,7 +140,7 @@ public class EditRecipeActivity extends AppCompatActivity {
                 httpURLConnection.setUseCaches(false);
                 httpURLConnection.setDoOutput(true);
                 httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
                 httpURLConnection.setRequestMethod("PUT");
 
@@ -178,7 +167,7 @@ public class EditRecipeActivity extends AppCompatActivity {
                 }
                 Bitmap bm = BitmapFactory.decodeStream(fis);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bm.compress(Bitmap.CompressFormat.JPEG, 100 , baos);
+                bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 byte[] b = baos.toByteArray();
                 Log.e("Image size", String.valueOf(b.length));
 
@@ -215,7 +204,7 @@ public class EditRecipeActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }  finally {
+            } finally {
                 if (httpURLConnection != null)
                     httpURLConnection.disconnect();
             }
@@ -254,34 +243,34 @@ public class EditRecipeActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestProperty("Authorization", "Bearer " + access_token);
+                httpURLConnection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 httpURLConnection.setRequestMethod("PATCH");
                 httpURLConnection.connect();
                 JSONObject jsonParam = new JSONObject();
 
-                recipe_name =ET_RECIPENAME.getText().toString();
-                recipe_descriptions =ET_DESCRIPTION.getText().toString();
+                recipe_name = ET_RECIPENAME.getText().toString();
+                recipe_descriptions = ET_DESCRIPTION.getText().toString();
                 recipe_directions = ET_DIRECTION.getText().toString();
-                recipe_directions2  =ET_DIRECTION_2.getText().toString();
+                recipe_directions2 = ET_DIRECTION_2.getText().toString();
 
                 JSONArray arrForB = new JSONArray();
-                for(l=1; l<3; l++) {
+                for (int l = 1; l < 3; l++) {
                     if (l == 1) {
                         JSONObject itemB = new JSONObject();
                         itemB.put("order", l);
                         itemB.put("description", recipe_directions);
                         arrForB.put(itemB);
                     }
-                    if(l == 2) {
+                    if (l == 2) {
                         JSONObject itemB = new JSONObject();
                         itemB.put("order", l);
                         itemB.put("description", recipe_directions2);
                         arrForB.put(itemB);
                     }
                 }
-                jsonParam.put("name",recipe_name);
+                jsonParam.put("name", recipe_name);
                 jsonParam.put("description", recipe_descriptions);
-                jsonParam.put("creatorId",USERID);
+                jsonParam.put("creatorId", userId);
                 jsonParam.put("directions", arrForB);
 
                 OutputStreamWriter out = new OutputStreamWriter(httpURLConnection.getOutputStream());
@@ -291,7 +280,6 @@ public class EditRecipeActivity extends AppCompatActivity {
                 int HttpResult = httpURLConnection.getResponseCode();
                 if (HttpResult == HttpURLConnection.HTTP_NO_CONTENT) {
                     System.out.println("EDITED");
-
                 } else {
                     System.out.println(httpURLConnection.getResponseCode());
                     BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getErrorStream(), "utf-8"));
@@ -328,10 +316,9 @@ public class EditRecipeActivity extends AppCompatActivity {
         protected void onPostExecute(String error) {
             if (error != null) {
                 Toast.makeText(getApplicationContext(), error, Toast.LENGTH_LONG).show();
-            }
-            else {
+            } else {
                 Intent intent = new Intent(EditRecipeActivity.this, HomeActivity.class);
-                Toast.makeText(getApplicationContext(), "Recipe EDITED", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Recipe edit successful", Toast.LENGTH_LONG).show();
                 startActivity(intent);
             }
         }

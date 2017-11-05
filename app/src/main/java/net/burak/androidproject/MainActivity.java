@@ -6,44 +6,19 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.google.gson.Gson;
+import android.view.*;
+import android.widget.*;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
+import net.burak.androidproject.helpers.RecipesHelper;
 import net.burak.androidproject.models.RecipeModel;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /* This is Created
         by
@@ -52,17 +27,18 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView lvRecipes;
+    private AbsListView lvRecipes;
     private ProgressDialog dialog;
+    private AtomicInteger currPage = new AtomicInteger(0);
+    private AtomicInteger pageNum = new AtomicInteger(1);
+    private RecipesHelper recipesHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //This is used for clearing SharedPrefrences
-        PreferenceManager.getDefaultSharedPreferences(getBaseContext()).
-                edit().clear().apply();
+        this.recipesHelper = new RecipesHelper(this);
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -78,71 +54,70 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         ImageLoader.getInstance().init(config);
 
-        lvRecipes = (ListView) findViewById(R.id.lvRecipes);
+        lvRecipes = (AbsListView) findViewById(R.id.lvRecipes);
 
-        Button but1 = (Button) findViewById(R.id.pagenext);
-        Button but2 = (Button) findViewById(R.id.pageprev);
-        Button but3 = (Button) findViewById(R.id.buttonSignIN);
-        Button but4 = (Button) findViewById(R.id.buttonSignUP);
+        Button nextPageBtn = (Button) findViewById(R.id.pagenext);
+        Button prevPageBtn = (Button) findViewById(R.id.pageprev);
+        Button signInBtn = (Button) findViewById(R.id.buttonSignIN);
+        Button signUpBtn = (Button) findViewById(R.id.buttonSignUP);
 
-        final String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=1";
-        new JSONTask().execute(URL_TO_HIT);
+        new GetRecipeByPageTask().execute("" + pageNum.get());
 
-        final int[] counter = {1};
-        but1.setOnClickListener(new View.OnClickListener() {
-
+        nextPageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                {
-                counter[0] +=1;
-                String pagenumber = Integer.toString(counter[0]);
-                    String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenumber;
-                    new JSONTask().execute(URL_TO_HIT);
+                new GetRecipeByPageTask().execute("" + pageNum.incrementAndGet());
             }
-        }
-    });
+        });
 
-        but2.setOnClickListener(new View.OnClickListener() {
-
+        prevPageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                {
-                    if (counter[0] != 1 ) {
-                        counter[0] -= 1;
-                        String pagenumber = Integer.toString(counter[0]);
-                        String URL_TO_HIT = "http://52.211.99.140/api/v1/recipes?page=" + pagenumber;
-                        new JSONTask().execute(URL_TO_HIT);
-                    }
-                    else{
-                        Toast.makeText(getApplicationContext(), "This is Final Page", Toast.LENGTH_SHORT).show();
-
-                    }
+                if (pageNum.get() > 1) {
+                    new GetRecipeByPageTask().execute("" + pageNum.decrementAndGet());
+                } else {
+                    Toast.makeText(getApplicationContext(), "This is the first page", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        but3.setOnClickListener(new View.OnClickListener() {
+        signInBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                {
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
             }
         });
 
-        but4.setOnClickListener(new View.OnClickListener() {
+        signUpBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                {
-                    Intent intent = new Intent(MainActivity.this, SignupActivity.class);
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(MainActivity.this, SignupActivity.class);
+                startActivity(intent);
             }
         });
 
     }
-    public class JSONTask extends AsyncTask<String, String, List<RecipeModel>> {
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_exit) {
+            this.finishAffinity();
+
+        } else if (item.getItemId() == R.id.action_search) {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+
+        }
+        return true;
+    }
+
+    public class GetRecipeByPageTask extends AsyncTask<String, String, List<RecipeModel>> {
 
         @Override
         protected void onPreExecute() {
@@ -152,48 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected List<RecipeModel> doInBackground(String... params) {
-            StringBuilder sb = new StringBuilder();
-            HttpURLConnection httpURLConnection = null;
-            try {
-                URL url = new URL(params[0]);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestProperty("Accept", "application/json");
-                httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestMethod("GET");
-                httpURLConnection.connect();
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), "utf-8"));
-                String line = null;
-
-                while ((line = br.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-
-                br.close();
-
-                List<RecipeModel> RecipeModelList = new ArrayList<>();
-
-                JSONArray parentArray = new JSONArray(sb.toString());
-                Gson gson = new Gson();
-                for (int i = 0; i < parentArray.length(); i++) {
-                    JSONObject finalObject = parentArray.getJSONObject(i);
-                    RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
-                    RecipeModelList.add(recipeModel);
-                }
-
-                return RecipeModelList;
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
-                if (httpURLConnection != null)
-                    httpURLConnection.disconnect();
-            }
-            return null;
+            return recipesHelper.getRecipes(Integer.parseInt(params[0]));
         }
 
         @Override
@@ -201,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(result);
             dialog.dismiss();
             if (result != null) {
+                currPage.set(pageNum.get());
                 RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_showrecipe, result);
                 lvRecipes.setAdapter(adapter);
                 lvRecipes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -208,11 +143,12 @@ public class MainActivity extends AppCompatActivity {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         RecipeModel recipeModel = result.get(position);
                         Intent intent = new Intent(MainActivity.this, MainDetailActivity.class);
-                        intent.putExtra("recipeModel", new Gson().toJson(recipeModel));
+                        intent.putExtra(AppConstants.RECIPE_ID, "" + recipeModel.getId());
                         startActivity(intent);
                     }
                 });
             } else {
+                pageNum.set(currPage.get());
                 Toast.makeText(getApplicationContext(), "Not able to fetch data from server, no internet connection found.", Toast.LENGTH_SHORT).show();
             }
         }
@@ -234,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
+            RecipeModel recipeModel = RecipeModelList.get(position);
             ViewHolder holder = null;
 
             if (convertView == null) {
@@ -273,9 +210,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            holder.tvRecipeName.setText(RecipeModelList.get(position).getTagline());
-            holder.tvRecipeID.setText("ID: " + RecipeModelList.get(position).getid());
-            holder.tvCreated.setText("Created: " + RecipeModelList.get(position).getCreated());
+            holder.tvRecipeName.setText(recipeModel.getName());
+            holder.tvRecipeID.setText("ID: " + recipeModel.getId());
+            holder.tvCreated.setText("Created: " + recipeModel.getCreated());
             return convertView;
         }
 
@@ -288,27 +225,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_exit) {
-            this.finishAffinity();
-
-        }
-        else    if (item.getItemId() == R.id.action_search) {
-            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-            startActivity(intent);
-
-        }
-        return true;
     }
 
 

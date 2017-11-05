@@ -1,40 +1,23 @@
 package net.burak.androidproject;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.google.gson.Gson;
+import android.widget.Toast;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-
+import net.burak.androidproject.helpers.RecipesHelper;
+import net.burak.androidproject.models.DirectionsModel;
 import net.burak.androidproject.models.RecipeModel;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /* This is Created
@@ -43,17 +26,23 @@ import java.util.List;
 */
 
 
-public class MainDetailActivity extends ActionBarActivity {
+public class MainDetailActivity extends AppCompatActivity {
 
-    int recipeID;
-    private ListView lvRecipes;
+    private int recipeID;
     private ProgressDialog dialog;
+    private RecipesHelper recipesHelper;
+
+    private ImageView ivRecipeIcon;
+    private ProgressBar progressBar;
+    private TextView tvRecipeName, tvDescription, tvDirections, tvUsername;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail_main);
+        setContentView(R.layout.activity_detail_recipe);
+
+        this.recipesHelper = new RecipesHelper(this);
 
         dialog = new ProgressDialog(this);
         dialog.setIndeterminate(true);
@@ -69,19 +58,21 @@ public class MainDetailActivity extends ActionBarActivity {
                 .build();
         ImageLoader.getInstance().init(config);
 
-        lvRecipes = (ListView) findViewById(R.id.lvRecipes);
+        ivRecipeIcon = (ImageView) findViewById(R.id.ivIcon);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        tvRecipeName = (TextView) findViewById(R.id.tvRecipeName);
+        tvDescription = (TextView) findViewById(R.id.tvDescription);
+        tvDirections = (TextView) findViewById(R.id.tvDirections);
+        tvUsername = (TextView) findViewById(R.id.tvUsername);
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String json = bundle.getString("recipeModel");
-            RecipeModel recipeModel = new Gson().fromJson(json, RecipeModel.class);
-            recipeID = recipeModel.getid();
+            recipeID = Integer.parseInt(bundle.getString(AppConstants.RECIPE_ID));
         }
-        final String url = "http://52.211.99.140/api/v1/recipes/" + recipeID;
-        new JSONTask().execute(url);
+        new GetRecipeTask().execute();
     }
 
-    public class JSONTask extends AsyncTask<String, String, List<RecipeModel>> {
+    public class GetRecipeTask extends AsyncTask<String, String, RecipeModel> {
 
         @Override
         protected void onPreExecute() {
@@ -91,171 +82,55 @@ public class MainDetailActivity extends ActionBarActivity {
         }
 
         @Override
-        protected List<RecipeModel> doInBackground(String... params) {
-            StringBuilder sb = new StringBuilder();
-            HttpURLConnection httpURLConnection = null;
-            try {
-                URL url = new URL(params[0]);
-                httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestProperty("Accept", "application/json");
-                httpURLConnection.setRequestProperty("Host", "11.12.21.22");
-                httpURLConnection.setRequestMethod("GET");
-                httpURLConnection.connect();
+        protected RecipeModel doInBackground(String... params) {
+            return recipesHelper.getRecipeById(recipeID);
+        }
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream(), "utf-8"));
-                String line = null;
-
-                while ((line = br.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-
-                br.close();
-
-                List<RecipeModel> recipeModelList = new ArrayList<>();
-                Gson gson = new Gson();
-
-                JSONObject finalObject = new JSONObject(sb.toString());
-                JSONObject json = new JSONObject(sb.toString());
-                JSONObject json2 = json.getJSONObject("creator");
-                    if(httpURLConnection.getResponseCode() == 200) {
-
-                        RecipeModel recipeModel = gson.fromJson(finalObject.toString(), RecipeModel.class);
-                        recipeModel.setTagline(finalObject.getString("name"));
-                        recipeModel.setDescription(finalObject.getString("description"));
-                        recipeModel.setImage(finalObject.getString("image"));
-                        recipeModel.setUserName(json2.getString("userName"));
-                        recipeModel.setUserid(json2.getString("id"));
-
-                        List<RecipeModel.directions> directionsList = new ArrayList<>();
-                        for (int j = 0; j < finalObject.getJSONArray("directions").length(); j++) {
-                            RecipeModel.directions directions = new RecipeModel.directions();
-                            directions.setDescription(finalObject.getJSONArray("directions").getJSONObject(j).getString("description"));
-                            directions.setOrder(finalObject.getJSONArray("directions").getJSONObject(j).getInt("order"));
-
-                            directionsList.add(directions);
+        @Override
+        protected void onPostExecute(final RecipeModel recipe) {
+            super.onPostExecute(recipe);
+            if (recipe != null) {
+                dialog.dismiss();
+                if (recipe.getImage() != null && !recipe.getImage().equals("null")) {
+                    ImageLoader.getInstance().displayImage(recipe.getImage(), ivRecipeIcon, new ImageLoadingListener() {
+                        @Override
+                        public void onLoadingStarted(String imageUri, View view) {
+                            progressBar.setVisibility(View.VISIBLE);
                         }
-                        recipeModel.setdirectionsList(directionsList);
-                        recipeModelList.add(recipeModel);
+
+                        @Override
+                        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                            progressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                            progressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onLoadingCancelled(String imageUri, View view) {
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    });
+                }
+                tvRecipeName.setText(recipe.getName());
+                if (recipe.getDescription() != null) {
+                    tvDescription.setText("Description: " + "\n" + recipe.getDescription());
+                }
+                if (recipe.getCreator() != null) {
+                    tvUsername.setText("Name: " + recipe.getCreator().getUserName());
+                }
+                if (recipe.getDirections() != null) {
+                    StringBuilder directions = new StringBuilder();
+                    for (DirectionsModel direction : recipe.getDirections()) {
+                        directions.append(direction.getOrder()).append(".  ").append(direction.getDescription()).append(" \n");
                     }
-                return recipeModelList;
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
-                if (httpURLConnection != null)
-                    httpURLConnection.disconnect();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(final List<RecipeModel> result) {
-            super.onPostExecute(result);
-            dialog.dismiss();
-            RecipeAdapter adapter = new RecipeAdapter(getApplicationContext(), R.layout.activity_detail_recipe, result);
-            lvRecipes.setAdapter(adapter);
-        }
-    }
-
-    public class RecipeAdapter extends ArrayAdapter {
-
-        private List<RecipeModel> recipeModelList;
-        private int resource;
-        private LayoutInflater inflater;
-
-        public RecipeAdapter(Context context, int resource, List<RecipeModel> objects) {
-            super(context, resource, objects);
-            recipeModelList = objects;
-            this.resource = resource;
-            inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            ViewHolder holder = null;
-
-            if (convertView == null) {
-                holder = new ViewHolder();
-                convertView = inflater.inflate(resource, null);
-                holder.ivRecipeIcon = (ImageView)convertView.findViewById(R.id.ivIcon);
-                holder.tvRecipeName = (TextView)convertView.findViewById(R.id.tvRecipeName);
-                holder.tvDescription = (TextView)convertView.findViewById(R.id.tvDescription);
-                holder.tvDirections = (TextView)convertView.findViewById(R.id.tvDirections);
-                holder.tvUsername = (TextView)convertView.findViewById(R.id.tvUsername);
-
-                convertView.setTag(holder);
+                    tvDirections.setText("Directions:" + "\n" + directions);
+                }
             } else {
-                holder = (ViewHolder) convertView.getTag();
-
+                Toast.makeText(getApplicationContext(), "Couldn't fetch results", Toast.LENGTH_LONG).show();
             }
-            final ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.progressBar);
-
-            if(recipeModelList.get(position).getImage() != "null") {
-                ImageLoader.getInstance().displayImage(recipeModelList.get(position).getImage(), holder.ivRecipeIcon, new ImageLoadingListener() {
-                    @Override
-                    public void onLoadingStarted(String imageUri, View view) {
-                        progressBar.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-
-                    @Override
-                    public void onLoadingCancelled(String imageUri, View view) {
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-
-
-                holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-                holder.tvDescription.setText("Description: " + "\n" + recipeModelList.get(position).getDescription());
-                holder.tvUsername.setText("User Name: " +recipeModelList.get(position).getUserName());
-
-                StringBuffer stringBuffer = new StringBuffer();
-                for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
-                    stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
-                }
-
-                holder.tvDirections.setText("Directions:" + "\n" + stringBuffer);
-
-            }
-            else {
-
-                holder.tvRecipeName.setText(recipeModelList.get(position).getTagline());
-                holder.tvDescription.setText("Description: " + "\n" + recipeModelList.get(position).getDescription());
-                holder.tvUsername.setText("User Name: " + recipeModelList.get(position).getUserName());
-
-                StringBuffer stringBuffer = new StringBuffer();
-                for (RecipeModel.directions directions : recipeModelList.get(position).getdirectionsList()) {
-                    stringBuffer.append(directions.getOrder() + ".  " + directions.getDescription() + " \n");
-                }
-
-                holder.tvDirections.setText("Directions:" + "\n" + stringBuffer);
-            }
-
-            return convertView;
-
-        }
-
-
-        class ViewHolder {
-            private ImageView ivRecipeIcon;
-            private TextView tvRecipeName;
-            private TextView tvDescription;
-            private TextView tvDirections;
-            private TextView tvUsername;
         }
     }
 }
